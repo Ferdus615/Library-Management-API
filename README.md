@@ -1,3 +1,57 @@
+```bash
+src/
+│
+├── app.module.ts
+├── main.ts
+│
+├── config/                 # Environment & DB configs
+│   └── ormconfig.ts
+│
+├── common/                 # Reusable utilities & filters
+│   ├── dto/
+│   ├── guards/
+│   ├── interceptors/
+│   └── decorators/
+│
+├── modules/
+│   ├── users/              # Users & roles (students, librarians)
+│   │   ├── users.module.ts
+│   │   ├── users.service.ts
+│   │   ├── users.controller.ts
+│   │   └── user.entity.ts
+│   │
+│   ├── auth/               # JWT auth logic
+│   │   ├── auth.module.ts
+│   │   ├── auth.service.ts
+│   │   ├── auth.controller.ts
+│   │   ├── jwt.strategy.ts
+│   │   └── local.strategy.ts
+│   │
+│   ├── books/              # Books and related info
+│   │   ├── books.module.ts
+│   │   ├── books.service.ts
+│   │   ├── books.controller.ts
+│   │   └── book.entity.ts
+│   │
+│   ├── borrow/             # Borrow / return system
+│   │   ├── borrow.module.ts
+│   │   ├── borrow.service.ts
+│   │   ├── borrow.controller.ts
+│   │   └── borrow.entity.ts
+│   │
+│   └── categories/         # Optional - book categories
+│       ├── categories.module.ts
+│       ├── categories.service.ts
+│       ├── categories.controller.ts
+│       └── category.entity.ts
+│
+└── utils/
+    └── helpers.ts          # Common helper functions
+
+```
+
+
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
