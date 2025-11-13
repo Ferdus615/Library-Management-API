@@ -9,7 +9,7 @@ export class ResponseBookDto {
 
   author: string;
 
-  publlication_year: number;
+  publication_year: number;
 
   total_copies: number;
 
@@ -20,7 +20,7 @@ export class ResponseBookDto {
     this.isbn = book.isbn;
     this.title = book.title;
     this.author = book.author;
-    this.publlication_year = book.publication_year;
+    this.publication_year = book.publication_year;
     this.total_copies = book.total_copies;
     this.available_copies = book.available_copies;
   }

@@ -6,18 +6,29 @@ import { Repository } from 'typeorm';
 import { Book } from './entities/book.entity';
 import { ResponseBookDto } from './dto/responseBookDto.dto';
 
-
 @Injectable()
 export class BookService {
-  constructor(@InjectRepository(Book)
-  private readonly bookRepository: Repository<Book>) {}
+  constructor(
+    @InjectRepository(Book)
+    private readonly bookRepository: Repository<Book>,
+  ) {}
 
   async create(createBookDto: CreateBookDto): Promise<ResponseBookDto> {
-    const 
+    const { total_copies } = CreateBookDto;
+
+    const newBook = this.bookRepository.create({
+      ...createBookDto,
+      available_copies: total_copies,
+    });
+
+    const savedBook = await this.bookRepository.save(newBook);
+
+    return new ResponseBookDto(savedBook);
   }
 
-  async findAll() {
-    return `This action returns all book`;
+  async findAll(): Promise<ResponseBookDto[]> {
+    const books = await this.bookRepository.find();
+    return
   }
 
   async findOne(id: number) {
