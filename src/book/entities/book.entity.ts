@@ -5,14 +5,14 @@ export class Book {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ length: 13, unique: true })
+  isbn: string;
+
   @Column({ length: 150 })
   title: string;
 
   @Column({ length: 100 })
   author: string;
-
-  @Column({ length: 13, unique: true })
-  isbn: string;
 
   @Column({ type: 'int' })
   publication_year: number;
