@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBookDto } from './dto/createBookDto.dto';
 import { UpdateBookDto } from './dto/updateBookDto.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,7 +14,7 @@ export class BookService {
   ) {}
 
   async create(createBookDto: CreateBookDto): Promise<ResponseBookDto> {
-    const { total_copies } = CreateBookDto;
+    const { total_copies } = createBookDto;
 
     const newBook = this.bookRepository.create({
       ...createBookDto,
@@ -31,8 +31,11 @@ export class BookService {
     return books.map((book) => new ResponseBookDto(book));
   }
 
-  async findOne(id: number) {
-    return `This action returns a #${id} book`;
+  async findOne(id: string) {
+    const book = await this.bookRepository.findOne({ where: { id } });
+    if (!book) throw new NotFoundException(`Book with ID-${id} not found`);
+
+    return new ResponseBookDto(book);
   }
 
   async update(id: number, updateBookDto: UpdateBookDto) {
