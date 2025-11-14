@@ -28,7 +28,7 @@ export class BookService {
 
   async findAll(): Promise<ResponseBookDto[]> {
     const books = await this.bookRepository.find();
-    return
+    return books.map((book) => new ResponseBookDto(book));
   }
 
   async findOne(id: number) {
