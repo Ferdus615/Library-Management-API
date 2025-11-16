@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateBookDto } from './dto/createBookDto.dto';
 import { UpdateBookDto } from './dto/updateBookDto.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,17 +17,29 @@ export class BookService {
     private readonly bookRepository: Repository<Book>,
   ) {}
 
-  async create(createBookDto: CreateBookDto): Promise<ResponseBookDto> {
-    const { total_copies } = createBookDto;
+  async create(
+    createBookDto: CreateBookDto | CreateBookDto[],
+  ): Promise<ResponseBookDto | ResponseBookDto[]> {
+    const arrBook = Array.isArray(createBookDto)
+      ? createBookDto
+      : [createBookDto];
 
-    const newBook = this.bookRepository.create({
-      ...createBookDto,
-      available_copies: total_copies,
-    });
+    if (arrBook.length === 0) {
+      throw new BadRequestException(`No book data provided!`);
+    }
 
-    const savedBook = await this.bookRepository.save(newBook);
+    const addBook = arrBook.map((book) =>
+      this.bookRepository.create({
+        ...book,
+        available_copies: book.total_copies,
+      }),
+    );
 
-    return new ResponseBookDto(savedBook);
+    const saveBook = await this.bookRepository.save(addBook);
+
+    const response = saveBook.map((book) => new ResponseBookDto(book));
+
+    return Array.isArray(createBookDto) ? response : response[0];
   }
 
   async findAll(): Promise<ResponseBookDto[]> {
@@ -38,8 +54,17 @@ export class BookService {
     return new ResponseBookDto(book);
   }
 
-  async update(id: number, updateBookDto: UpdateBookDto) {
-    return `This action updates a #${id} book`;
+  async update(id: string, updateBookDto: UpdateBookDto) {
+    const book = await this.bookRepository.findOne({ where: { id } });
+    if (!book) {
+      throw new NotFoundException(`Book with id:${id} not found!`);
+    }
+
+    const updateBook = this.bookRepository.merge(book, updateBookDto);
+
+    if (updateBook.total_copies !== undefined) {
+      const 
+    }
   }
 
   async remove(id: number) {

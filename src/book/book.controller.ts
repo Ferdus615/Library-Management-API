@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  NotFoundException,
 } from '@nestjs/common';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/createBookDto.dto';
@@ -16,18 +17,18 @@ export class BookController {
   constructor(private readonly bookService: BookService) {}
 
   @Post()
-  create(@Body() createBookDto: CreateBookDto) {
-    return this.bookService.create(createBookDto);
+  async create(@Body() createBookDto: CreateBookDto) {
+    return await this.bookService.create(createBookDto);
   }
 
   @Get()
-  findAll() {
-    return this.bookService.findAll();
+  async findAll() {
+    return await this.bookService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.bookService.findOne(+id);
+    // return this.bookService.findOne(+id);
   }
 
   @Patch(':id')
