@@ -38,9 +38,10 @@ export class BookService {
     return new ResponseBookDto(book);
   }
 
-  async update(id: number, updateBookDto: UpdateBookDto) {
-    return `This action updates a #${id} book`;
-  }
+  async update(
+    id: string,
+    updateBookDto: UpdateBookDto,
+  ): Promise<ResponseBookDto> {}
 
   async remove(id: number) {
     return `This action removes a #${id} book`;
