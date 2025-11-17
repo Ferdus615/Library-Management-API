@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateBookDto } from './dto/createBookDto.dto';
 import { UpdateBookDto } from './dto/updateBookDto.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,37 +17,74 @@ export class BookService {
     private readonly bookRepository: Repository<Book>,
   ) {}
 
-  async create(createBookDto: CreateBookDto): Promise<ResponseBookDto> {
-    const { total_copies } = createBookDto;
+  async createBook(
+    createBookDto: CreateBookDto | CreateBookDto[],
+  ): Promise<ResponseBookDto | ResponseBookDto[]> {
+    const arrBook = Array.isArray(createBookDto)
+      ? createBookDto
+      : [createBookDto];
 
-    const newBook = this.bookRepository.create({
-      ...createBookDto,
-      available_copies: total_copies,
-    });
+    if (arrBook.length === 0) {
+      throw new BadRequestException(`No book data provided!`);
+    }
 
-    const savedBook = await this.bookRepository.save(newBook);
+    const addBook = arrBook.map((book) =>
+      this.bookRepository.create({
+        ...book,
+        available_copies: book.total_copies,
+      }),
+    );
 
-    return new ResponseBookDto(savedBook);
+    const saveBook = await this.bookRepository.save(addBook);
+
+    const response = saveBook.map((book) => new ResponseBookDto(book));
+
+    return Array.isArray(createBookDto) ? response : response[0];
   }
 
-  async findAll(): Promise<ResponseBookDto[]> {
+  async findAllBook(): Promise<ResponseBookDto[]> {
     const books = await this.bookRepository.find();
     return books.map((book) => new ResponseBookDto(book));
   }
 
-  async findOne(id: string) {
+  async findOneBook(id: string) {
     const book = await this.bookRepository.findOne({ where: { id } });
     if (!book) throw new NotFoundException(`Book with ID-${id} not found`);
 
     return new ResponseBookDto(book);
   }
 
-  async update(
+  async updateBook(
     id: string,
     updateBookDto: UpdateBookDto,
-  ): Promise<ResponseBookDto> {}
+  ): Promise<ResponseBookDto> {
+    const book = await this.bookRepository.findOne({ where: { id } });
+    if (!book) {
+      throw new NotFoundException(`Book with id:${id} not found!`);
+    }
 
-  async remove(id: number) {
-    return `This action removes a #${id} book`;
+    const updateBook = this.bookRepository.merge(book, updateBookDto);
+
+    if (updateBook.total_copies !== undefined) {
+      const difference = updateBook.total_copies - book.total_copies;
+      updateBook.available_copies =
+        (updateBook.available_copies ?? book.available_copies ?? 0) +
+        difference;
+
+      if (updateBook.available_copies < 0) {
+        updateBook.available_copies = 0;
+      }
+    }
+
+    const saveBook = await this.bookRepository.save(updateBook);
+    return new ResponseBookDto(saveBook);
+  }
+
+  async removeBook(id: string) {
+    const book = await this.bookRepository.findOne({ where: { id } });
+    if (!book) throw new NotFoundException(`Book with id:${id} not found!`);
+
+    await this.bookRepository.remove(book);
+    return { message: `Book with id:${id} has been removed successfully!` };
   }
 }

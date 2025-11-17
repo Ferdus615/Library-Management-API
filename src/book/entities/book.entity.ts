@@ -22,4 +22,10 @@ export class Book {
 
   @Column({ type: 'int', default: 1 })
   available_copies: number;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  updated_at: Date;
 }
