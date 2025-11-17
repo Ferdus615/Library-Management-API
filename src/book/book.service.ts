@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  Patch,
 } from '@nestjs/common';
 import { CreateBookDto } from './dto/createBookDto.dto';
 import { UpdateBookDto } from './dto/updateBookDto.dto';
@@ -48,7 +47,7 @@ export class BookService {
     return books.map((book) => new ResponseBookDto(book));
   }
 
-  async findOneBook(id: string) {
+  async findOneBook(id: string): Promise<ResponseBookDto> {
     const book = await this.bookRepository.findOne({ where: { id } });
     if (!book) throw new NotFoundException(`Book with ID-${id} not found`);
 
