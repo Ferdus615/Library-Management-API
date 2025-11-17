@@ -18,7 +18,7 @@ export class BookService {
     private readonly bookRepository: Repository<Book>,
   ) {}
 
-  async create(
+  async createBook(
     createBookDto: CreateBookDto | CreateBookDto[],
   ): Promise<ResponseBookDto | ResponseBookDto[]> {
     const arrBook = Array.isArray(createBookDto)
@@ -43,19 +43,19 @@ export class BookService {
     return Array.isArray(createBookDto) ? response : response[0];
   }
 
-  async findAll(): Promise<ResponseBookDto[]> {
+  async findAllBook(): Promise<ResponseBookDto[]> {
     const books = await this.bookRepository.find();
     return books.map((book) => new ResponseBookDto(book));
   }
 
-  async findOne(id: string) {
+  async findOneBook(id: string) {
     const book = await this.bookRepository.findOne({ where: { id } });
     if (!book) throw new NotFoundException(`Book with ID-${id} not found`);
 
     return new ResponseBookDto(book);
   }
 
-  async update(
+  async updateBook(
     id: string,
     updateBookDto: UpdateBookDto,
   ): Promise<ResponseBookDto> {
@@ -81,7 +81,7 @@ export class BookService {
     return new ResponseBookDto(saveBook);
   }
 
-  async remove(id: string) {
+  async removeBook(id: string) {
     const book = await this.bookRepository.findOne({ where: { id } });
     if (!book) throw new NotFoundException(`Book with id:${id} not found!`);
 
