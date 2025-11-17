@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('books')
-export class Book {
+export class Books {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -19,6 +19,9 @@ export class Book {
 
   @Column({ type: 'int', default: 1 })
   total_copies: number;
+
+  @Column({ type: 'int', default: 0 })
+  damaged_copies: number;
 
   @Column({ type: 'int', default: 1 })
   available_copies: number;

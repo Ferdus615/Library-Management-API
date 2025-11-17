@@ -10,5 +10,9 @@ export class UpdateBookDto {
 
   @IsNumber()
   @Min(1)
-  total_Copies?: number;
+  copies_added?: number;
+
+  @IsNumber()
+  @Min(1)
+  damaged_copies?: number;
 }

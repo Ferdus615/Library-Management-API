@@ -2,19 +2,20 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Patch,
 } from '@nestjs/common';
 import { CreateBookDto } from './dto/createBookDto.dto';
 import { UpdateBookDto } from './dto/updateBookDto.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Book } from './entities/book.entity';
+import { Books } from './entities/book.entity';
 import { ResponseBookDto } from './dto/responseBookDto.dto';
 
 @Injectable()
 export class BookService {
   constructor(
-    @InjectRepository(Book)
-    private readonly bookRepository: Repository<Book>,
+    @InjectRepository(Books)
+    private readonly bookRepository: Repository<Books>,
   ) {}
 
   async createBook(
@@ -59,24 +60,34 @@ export class BookService {
     updateBookDto: UpdateBookDto,
   ): Promise<ResponseBookDto> {
     const book = await this.bookRepository.findOne({ where: { id } });
-    if (!book) {
-      throw new NotFoundException(`Book with id:${id} not found!`);
+    if (!book) throw new NotFoundException(`Book with id:${id} not found!`);
+
+    if (updateBookDto.copies_added !== undefined) {
+      const copiesAdded = Number(updateBookDto.copies_added);
+
+      book.total_copies += copiesAdded;
+      book.available_copies += copiesAdded;
+
+      delete updateBookDto.copies_added;
     }
 
-    const updateBook = this.bookRepository.merge(book, updateBookDto);
+    if (updateBookDto.damaged_copies !== undefined) {
+      const newDamagedCopies = Number(updateBookDto.damaged_copies);
 
-    if (updateBook.total_copies !== undefined) {
-      const difference = updateBook.total_copies - book.total_copies;
-      updateBook.available_copies =
-        (updateBook.available_copies ?? book.available_copies ?? 0) +
-        difference;
+      book.damaged_copies += newDamagedCopies;
 
-      if (updateBook.available_copies < 0) {
-        updateBook.available_copies = 0;
+      book.available_copies -= newDamagedCopies;
+
+      if (book.available_copies < 0) {
+        book.available_copies = 0;
       }
+
+      delete updateBookDto.damaged_copies;
     }
 
-    const saveBook = await this.bookRepository.save(updateBook);
+    Object.assign(book, updateBookDto);
+
+    const saveBook = await this.bookRepository.save(book);
     return new ResponseBookDto(saveBook);
   }
 
