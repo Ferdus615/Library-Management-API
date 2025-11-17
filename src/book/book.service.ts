@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Book } from './entities/book.entity';
 import { ResponseBookDto } from './dto/responseBookDto.dto';
+import { diff } from 'util';
 
 @Injectable()
 export class BookService {
@@ -54,7 +55,7 @@ export class BookService {
     return new ResponseBookDto(book);
   }
 
-  async update(id: string, updateBookDto: UpdateBookDto) {
+  async update(id: string, updateBookDto: UpdateBookDto): Promise<ResponseBookDto> {
     const book = await this.bookRepository.findOne({ where: { id } });
     if (!book) {
       throw new NotFoundException(`Book with id:${id} not found!`);
@@ -63,11 +64,21 @@ export class BookService {
     const updateBook = this.bookRepository.merge(book, updateBookDto);
 
     if (updateBook.total_copies !== undefined) {
-      const 
+      const difference = updateBook.total_copies - book.total_copies;
+      updateBook.available_copies =
+        (updateBook.available_copies ?? book.available_copies ?? 0) +
+        difference;
+
+      if (updateBook.available_copies < 0) {
+        updateBook.available_copies = 0;
+      }
     }
+
+    const saveBook = await this.bookRepository.save(updateBook);
+    return new ResponseBookDto(saveBook);
   }
 
-  async remove(id: number) {
-    return `This action removes a #${id} book`;
+  async remove(id: string) {
+    const book = 
   }
 }
