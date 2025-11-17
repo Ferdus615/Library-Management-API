@@ -55,7 +55,10 @@ export class BookService {
     return new ResponseBookDto(book);
   }
 
-  async update(id: string, updateBookDto: UpdateBookDto): Promise<ResponseBookDto> {
+  async update(
+    id: string,
+    updateBookDto: UpdateBookDto,
+  ): Promise<ResponseBookDto> {
     const book = await this.bookRepository.findOne({ where: { id } });
     if (!book) {
       throw new NotFoundException(`Book with id:${id} not found!`);
@@ -79,6 +82,10 @@ export class BookService {
   }
 
   async remove(id: string) {
-    const book = 
+    const book = await this.bookRepository.findOne({ where: { id } });
+    if (!book) throw new NotFoundException(`Book with id:${id} not found!`);
+
+    await this.bookRepository.remove(book);
+    return { message: `Book with id:${id} has been removed successfully!` };
   }
 }
