@@ -9,7 +9,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Book } from './entities/book.entity';
 import { ResponseBookDto } from './dto/responseBookDto.dto';
-import { diff } from 'util';
 
 @Injectable()
 export class BookService {
@@ -64,20 +63,22 @@ export class BookService {
       throw new NotFoundException(`Book with id:${id} not found!`);
     }
 
-    const updateBook = this.bookRepository.merge(book, updateBookDto);
+    const bookUpdate = this.bookRepository.merge(book, updateBookDto);
 
-    if (updateBook.total_copies !== undefined) {
-      const difference = updateBook.total_copies - book.total_copies;
-      updateBook.available_copies =
-        (updateBook.available_copies ?? book.available_copies ?? 0) +
-        difference;
+    if (updateBookDto.total_copies !== undefined) {
+      const newTotalCopies = Number(updateBookDto.total_copies);
 
-      if (updateBook.available_copies < 0) {
-        updateBook.available_copies = 0;
+      const difference = newTotalCopies - book.total_copies;
+      bookUpdate.total_copies = newTotalCopies;
+
+      bookUpdate.available_copies = book.available_copies + difference;
+
+      if (bookUpdate.available_copies < 0) {
+        bookUpdate.available_copies = 0;
       }
     }
 
-    const saveBook = await this.bookRepository.save(updateBook);
+    const saveBook = await this.bookRepository.save(bookUpdate);
     return new ResponseBookDto(saveBook);
   }
 
