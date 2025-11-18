@@ -5,7 +5,6 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/createUserDto.dto';
 import { ResponseUserDto } from './dto/responseUserDto';
-import { UpdateBookDto } from 'src/book/dto/updateBookDto.dto';
 import { UpdateUserDto } from './dto/updateUserDto.dto';
 
 @Injectable()
@@ -42,5 +41,18 @@ export class UserService {
   async updateUser(id: string, dto: UpdateUserDto): Promise<ResponseUserDto> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with id:${id} not found!`);
+
+    if (dto.password) {
+      dto.password = await bcrypt.hash(dto.password, 10);
+    }
+
+    Object.assign(user, dto);
+    return await this.userRepository.save(user);
+  }
+
+  async removeUser(id: string) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    await this.userRepository.remove(user);
+    return { message: `User has been successfully removed!` };
   }
 }
