@@ -1,23 +1,23 @@
-import { IsBoolean, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
 
 export class ResponseUserDto {
-  @IsString()
+  @ApiProperty({ example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' })
   id: string;
 
-  @IsString()
+  @ApiProperty({ example: 'John' })
   first_name: string;
 
-  @IsString()
+  @ApiProperty({ example: 'Doe' })
   last_name: string;
 
-  @IsString()
+  @ApiProperty({ example: 'john@example.com' })
   email: string;
 
-  @IsString()
+  @ApiProperty({ example: 'admin' })
   role: string;
 
-  @IsBoolean()
+  @ApiProperty({ example: true })
   is_active: boolean;
 
   constructor(user: User) {
