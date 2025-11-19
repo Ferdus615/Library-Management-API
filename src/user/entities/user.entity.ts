@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('Users')
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -35,6 +35,6 @@ export class User {
   @Column({ type: 'date', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
-  @Column({ type: 'date', default: () => 'CURRENT-TIMESTAMP' })
+  @Column({ type: 'date', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date;
 }
