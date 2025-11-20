@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/createUserDto.dto';
 import { ResponseUserDto } from './dto/responseUserDto';
@@ -38,6 +38,32 @@ export class UserService {
     return new ResponseUserDto(user);
   }
 
+  async findByEmail(email: string): Promise<ResponseUserDto> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new NotFoundException(`User with email:${email} not found!`);
+    }
+
+    return new ResponseUserDto(user);
+  }
+
+  async findByName(name: string): Promise<ResponseUserDto[]> {
+    const users = await this.userRepository.find({
+      where: [
+        {
+          first_name: ILike(`%${name}%`),
+        },
+        { last_name: ILike(`%${name}%`) },
+      ],
+    });
+
+    if (!users || users.length === 0) {
+      throw new NotFoundException(`User not found!`);
+    }
+
+    return users.map((user) => new ResponseUserDto(user));
+  }
+
   async updateUser(id: string, dto: UpdateUserDto): Promise<ResponseUserDto> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with id:${id} not found!`);
@@ -47,7 +73,8 @@ export class UserService {
     }
 
     Object.assign(user, dto);
-    return await this.userRepository.save(user);
+    const result = await this.userRepository.save(user);
+    return new ResponseUserDto(result);
   }
 
   async removeUser(id: string) {

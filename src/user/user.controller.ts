@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/createUserDto.dto';
@@ -32,6 +33,16 @@ export class UserController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ResponseUserDto> {
     return await this.userService.findOneUser(id);
+  }
+
+  @Get('email/:email')
+  async findByEmail(@Param('email') email: string): Promise<ResponseUserDto> {
+    return await this.userService.findByEmail(email);
+  }
+
+  @Get('name')
+  async findByName(@Query('name') name: string): Promise<ResponseUserDto[]> {
+    return await this.userService.findByName(name);
   }
 
   @Patch(':id')
