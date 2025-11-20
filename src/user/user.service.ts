@@ -64,6 +64,13 @@ export class UserService {
     return users.map((user) => new ResponseUserDto(user));
   }
 
+  async findByPhone(phone: string): Promise<ResponseUserDto> {
+    const user = await this.userRepository.findOne({ where: { phone } });
+    if (!user) throw new NotFoundException(`User not found!`);
+
+    return new ResponseUserDto(user);
+  }
+
   async updateUser(id: string, dto: UpdateUserDto): Promise<ResponseUserDto> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with id:${id} not found!`);

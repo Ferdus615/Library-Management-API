@@ -28,6 +28,16 @@ export class UserController {
     return await this.userService.findAllUser();
   }
 
+  @Get('names')
+  async findByName(@Query('name') name: string): Promise<ResponseUserDto[]> {
+    return await this.userService.findByName(name);
+  }
+
+  @Get('phones')
+  async findByPhone(@Query('phone') phone: string): Promise<ResponseUserDto> {
+    return await this.userService.findByPhone(phone);
+  }
+
   @Get(':id')
   async findOneUser(
     @Param('id', ParseUUIDPipe) id: string,
@@ -38,11 +48,6 @@ export class UserController {
   @Get('email/:email')
   async findByEmail(@Param('email') email: string): Promise<ResponseUserDto> {
     return await this.userService.findByEmail(email);
-  }
-
-  @Get('name')
-  async findByName(@Query('name') name: string): Promise<ResponseUserDto[]> {
-    return await this.userService.findByName(name);
   }
 
   @Patch(':id')
