@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/db.config';
 import { BookModule } from './book/book.module';
 import { UserModule } from './user/user.module';
+import { LoanModule } from './loan/loan.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { UserModule } from './user/user.module';
     TypeOrmModule.forRoot(typeOrmConfig),
     BookModule,
     UserModule,
+    LoanModule,
   ],
   controllers: [AppController],
   providers: [AppService],
