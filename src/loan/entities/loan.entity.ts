@@ -26,7 +26,7 @@ export class Loan {
   @Column({ type: 'date' })
   due_date: Date;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   return_date: Date;
 
   @Column({ default: 'issued' })
