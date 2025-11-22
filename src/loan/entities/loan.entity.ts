@@ -1,5 +1,3 @@
-import { Books } from 'src/book/entities/book.entity';
-import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -8,6 +6,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Books } from 'src/book/entities/book.entity';
+import { User } from 'src/user/entities/user.entity';
+import { LoanStatus } from '../enums/loanStatus.enum';
 
 @Entity('loans')
 export class Loan {
@@ -26,11 +27,11 @@ export class Loan {
   @Column({ type: 'date' })
   due_date: Date;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   return_date: Date;
 
-  @Column({ default: 'issued' })
-  status: 'issued' | 'returned' | 'overdue';
+  @Column({ type: 'enum', enum: LoanStatus, default: LoanStatus.ISSUED })
+  status: LoanStatus;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
