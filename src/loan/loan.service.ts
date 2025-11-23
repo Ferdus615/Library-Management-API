@@ -92,4 +92,6 @@ export class LoanService {
     await this.loanRepository.remove(loan);
     return { message: `Loan record deleted successfully!` };
   }
+
+  
 }
