@@ -4,7 +4,7 @@ import { LoanStatus } from '../enums/loanStatus.enum';
 export class UpdateLoanDto {
   @IsOptional()
   @IsDateString()
-  return_date?: string;
+  return_date?: Date;
 
   @IsOptional()
   @IsEnum(LoanStatus)

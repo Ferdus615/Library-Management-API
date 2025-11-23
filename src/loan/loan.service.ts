@@ -12,6 +12,7 @@ import { CreateLoanDto } from './dto/createLoanDto.dto';
 import { ResponseLoanDto } from './dto/responseLoanDto.dto';
 import { plainToInstance } from 'class-transformer';
 import { UpdateLoanDto } from './dto/updateLoanDto';
+import { LoanStatus } from './enums/loanStatus.enum';
 
 @Injectable()
 export class LoanService {
@@ -67,6 +68,28 @@ export class LoanService {
     const loan = await this.loanRepository.findOne({ where: { id } });
     if (!loan) throw new NotFoundException(`No such loan record found!`);
 
-    if (dto.return_date )
-  } n 
+    if (dto.return_date && loan.status !== LoanStatus.RETURNED) {
+      loan.return_date = dto.return_date;
+      loan.status = LoanStatus.RETURNED;
+
+      const book = loan.book;
+      book.available_copies += 1;
+      await this.bookRepository.save(book);
+    }
+
+    if (dto.status) {
+      loan.status = dto.status;
+    }
+
+    const updateLoan = await this.loanRepository.save(loan);
+    return plainToInstance(ResponseLoanDto, updateLoan);
+  }
+
+  async deleteLoan(id: string): Promise<{ message: string }> {
+    const loan = await this.loanRepository.findOne({ where: { id } });
+    if (!loan) throw new NotFoundException(`No such loan record found!`);
+
+    await this.loanRepository.remove(loan);
+    return { message: `Loan record deleted successfully!` };
+  }
 }
