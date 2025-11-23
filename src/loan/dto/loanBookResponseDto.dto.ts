@@ -5,14 +5,11 @@ export class LoanBookResponseDto {
   id: string;
 
   @Expose()
-  first_name: string;
+  title: string;
 
   @Expose()
-  last_name: string;
+  author: string;
 
   @Expose()
-  email: string;
-
-  @Expose()
-  phone: string;
+  isbn: string;
 }

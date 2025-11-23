@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Books } from '../entities/book.entity';
+import { Book } from '../entities/book.entity';
 import { IsInt, IsString } from 'class-validator';
 
 export class ResponseBookDto {
@@ -68,7 +68,7 @@ export class ResponseBookDto {
   @IsInt()
   available_copies: number;
 
-  constructor(book: Books) {
+  constructor(book: Book) {
     this.id = book.id;
     this.isbn = book.isbn;
     this.title = book.title;

@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Books } from 'src/book/entities/book.entity';
+import { Book } from 'src/book/entities/book.entity';
 import { User } from 'src/user/entities/user.entity';
 import { LoanStatus } from '../enums/loanStatus.enum';
 
@@ -18,8 +18,8 @@ export class Loan {
   @ManyToOne(() => User, { eager: true })
   user: User;
 
-  @ManyToOne(() => Books, { eager: true })
-  book: Books;
+  @ManyToOne(() => Book, { eager: true })
+  book: Book;
 
   @Column({ type: 'date' })
   issue_date: Date;
