@@ -49,7 +49,11 @@ export class LoanService {
 
     const saveLoan = await this.loanRepository.save(loan);
 
-    return plainToInstance(ResponseLoanDto, saveLoan);
+    const fullyLoadedLoan = await this.loanRepository.findOne({
+      where: { id: saveLoan.id },
+    });
+
+    return plainToInstance(ResponseLoanDto, fullyLoadedLoan);
   }
 
   async findAllLoan(): Promise<ResponseLoanDto[]> {
@@ -77,8 +81,10 @@ export class LoanService {
       await this.bookRepository.save(book);
     }
 
-    if (dto.status) {
-      loan.status = dto.status;
+    if (dto.status && dto.status !== LoanStatus.RETURNED) {
+      if (loan.status !== LoanStatus.RETURNED) {
+        loan.status = dto.status;
+      }
     }
 
     const updateLoan = await this.loanRepository.save(loan);
