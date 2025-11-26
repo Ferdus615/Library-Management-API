@@ -7,6 +7,7 @@ import { typeOrmConfig } from './config/db.config';
 import { BookModule } from './book/book.module';
 import { UserModule } from './user/user.module';
 import { LoanModule } from './loan/loan.module';
+import { FineModule } from './fine/fine.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { LoanModule } from './loan/loan.module';
     BookModule,
     UserModule,
     LoanModule,
+    FineModule,
   ],
   controllers: [AppController],
   providers: [AppService],
