@@ -6,7 +6,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Loan } from 'src/loan/entities/loan.entity';
 import { CreateFineDto } from './dto/createFineDto.dto';
 import { ResponseFineDto } from './dto/responseFineDto.dto';
-import { NotFoundError } from 'rxjs';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class FineService {
@@ -26,5 +26,16 @@ export class FineService {
       where: { id: dto.loan_id },
     });
     if (!loan) throw new NotFoundException(`Loan not found!`);
+
+    const fine = this.fineRepository.create({
+      user,
+      loan,
+      total_amount: dto.total_amount,
+      paid: false,
+    });
+
+    const saveFine = this.fineRepository.save(fine);
+
+    return plainToInstance(ResponseFineDto, saveFine);
   }
 }
