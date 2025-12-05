@@ -38,4 +38,6 @@ export class FineService {
 
     return plainToInstance(ResponseFineDto, saveFine);
   }
+
+  async AutoCreateFine(loan)
 }
