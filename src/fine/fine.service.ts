@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Fine } from './entities/fine.entity';
 import { Repository } from 'typeorm';
+import { Fine } from './entities/fine.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Loan } from 'src/loan/entities/loan.entity';
 import { CreateFineDto } from './dto/createFineDto.dto';
@@ -38,4 +38,7 @@ export class FineService {
 
     return plainToInstance(ResponseFineDto, saveFine);
   }
+
+ 
+  
 }
