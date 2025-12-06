@@ -5,9 +5,6 @@ import { Loan } from 'src/loan/entities/loan.entity';
 import { Repository } from 'typeorm';
 import { Fine } from '../entities/fine.entity';
 
-// FineResponseDto is not needed for the cron job itself, but kept for context.
-// import { FineResponseDto } from './dto/fine-response.dto';
-
 @Injectable()
 export class FineCron {
   private readonly logger = new Logger(FineCron.name);
@@ -15,10 +12,10 @@ export class FineCron {
 
   constructor(
     @InjectRepository(Loan)
-    private loanRepo: Repository<Loan>,
+    private loanRepository: Repository<Loan>,
 
     @InjectRepository(Fine)
-    private fineRepo: Repository<Fine>,
+    private fineRepository: Repository<Fine>,
   ) {}
 
   // ------------------------------------------------------------------
@@ -32,7 +29,7 @@ export class FineCron {
     const now = new Date();
 
     // 1. Find loans that are past their due date AND have NOT been returned yet
-    const overdueLoans = await this.loanRepo
+    const overdueLoans = await this.loanRepository
       .createQueryBuilder('loan')
       .leftJoinAndSelect('loan.user', 'user') // Eagerly load the user
       .where('loan.due_date < :now', { now: now.toISOString() }) // Past due date
@@ -53,7 +50,7 @@ export class FineCron {
       const fineAmount = overdueDays * this.FINE_RATE_PER_DAY;
 
       // 2. Check for existing fine
-      let fine = await this.fineRepo.findOne({
+      let fine = await this.fineRepository.findOne({
         where: { loan: { id: loan.id } },
       });
 
@@ -65,7 +62,7 @@ export class FineCron {
         );
       } else {
         // 4. If fine does not exist (CREATE): Create the initial fine record
-        fine = this.fineRepo.create({
+        fine = this.fineRepository.create({
           user: loan.user,
           loan,
           amount: fineAmount,
@@ -76,7 +73,7 @@ export class FineCron {
         );
       }
 
-      await this.fineRepo.save(fine);
+      await this.fineRepository.save(fine);
     }
     this.logger.log('12-hour fine accrual job finished.');
   }
