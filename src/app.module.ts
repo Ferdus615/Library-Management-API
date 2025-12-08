@@ -8,9 +8,11 @@ import { BookModule } from './book/book.module';
 import { UserModule } from './user/user.module';
 import { LoanModule } from './loan/loan.module';
 import { FineModule } from './fine/fine.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     TypeOrmModule.forRoot(typeOrmConfig),
     BookModule,
