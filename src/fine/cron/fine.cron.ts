@@ -21,6 +21,45 @@ export class FineCron {
 
     const now = new Date();
 
-    const overdueLoans = await this.loanRepository.createQueryBuilder('loan')
+    const overdueLoans = await this.loanRepository
+      .createQueryBuilder('loan')
+      .leftJoinAndSelect('loan.user', 'user')
+      .where('loan.due_date < :now', { now: now.toISOString() })
+      .andWhere('loan.return_date IS NULL')
+      .getMany();
+
+    this.logger.log(`Found ${overdueLoans.length} active overdue loans.`);
+
+    for (const loan of overdueLoans) {
+      const due = new Date(loan.due_date);
+
+      const overdueDays = Math.ceil(
+        (now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24),
+      );
+
+      const fineAmount = overdueDays * this.FINE_RATE_PER_DAY;
+
+      let fine = await this.fineRepository.findOne({
+        where: { loan: { id: loan.id } },
+      });
+
+      if (fine) {
+        fine.total_amount = fineAmount;
+        this.logger.log(
+          `Update fine for loan ${loan.id}. New amount: ${fineAmount}`,
+        );
+      } else {
+        fine = this.fineRepository.create({
+          user.loan.user,
+          loan,
+          total_amount: fineAmount,
+          paid: false,
+        });
+
+        this.logger.log(`Created initial fine for loan ${loan.id}. Amount: ${fineAmount}`);
+      }
+      await this.fineRepository.save(fine);
+    }
+    this.logger.log(`12-hour fine accural job finished.`);
   }
 }
