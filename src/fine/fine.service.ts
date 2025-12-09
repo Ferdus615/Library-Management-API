@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Fine } from './entities/fine.entity';
@@ -33,6 +37,19 @@ export class FineService {
       total_amount: dto.total_amount,
       paid: false,
     });
+
+    const saveFine = this.fineRepository.save(fine);
+
+    return plainToInstance(ResponseFineDto, saveFine);
+  }
+
+  async payFine(id: string): Promise<ResponseFineDto> {
+    const fine = await this.fineRepository.findOne({ where: { id } });
+    if (!fine) throw new NotFoundException(`Fine nor found!`);
+    if (fine.paid) throw new BadRequestException('Fine alredy paid!');
+
+    fine.paid = true;
+    fine.paid_at = new Date();
 
     const saveFine = this.fineRepository.save(fine);
 
