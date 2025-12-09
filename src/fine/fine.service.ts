@@ -55,4 +55,9 @@ export class FineService {
 
     return plainToInstance(ResponseFineDto, saveFine);
   }
+
+  async getAllFine(): Promise<ResponseFineDto[]> {
+    const fines = await this.fineRepository.find();
+    return fines.map((fine) => plainToInstance(ResponseFineDto, fine));
+  }
 }
