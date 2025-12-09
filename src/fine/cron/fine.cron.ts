@@ -50,13 +50,15 @@ export class FineCron {
         );
       } else {
         fine = this.fineRepository.create({
-          user.loan.user,
+          user: loan.user,
           loan,
           total_amount: fineAmount,
           paid: false,
         });
 
-        this.logger.log(`Created initial fine for loan ${loan.id}. Amount: ${fineAmount}`);
+        this.logger.log(
+          `Created initial fine for loan ${loan.id}. Amount: ${fineAmount}`,
+        );
       }
       await this.fineRepository.save(fine);
     }
