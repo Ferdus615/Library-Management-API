@@ -60,4 +60,16 @@ export class FineService {
     const fines = await this.fineRepository.find();
     return fines.map((fine) => plainToInstance(ResponseFineDto, fine));
   }
+
+  async getFineById(id: string): Promise<ResponseFineDto> {
+    const fine = await this.fineRepository.findOne({ where: { id } });
+    if (!fine) throw new NotFoundException(`Fine not found!`);
+
+    const saveFine = await this.fineRepository.save(fine);
+    return plainToInstance(ResponseFineDto, saveFine);
+  }
+
+  async getFineByUser(id: string): Promise<ResponseFineDto> {
+    const fine = await this.fineRepository.find()
+  }
 }
