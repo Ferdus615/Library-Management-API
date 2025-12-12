@@ -75,4 +75,12 @@ export class FineService {
 
     return fines.map((fine) => plainToInstance(ResponseFineDto, fine));
   }
+
+  async getFineByLoan(loanId: string): Promise<ResponseFineDto[]> {
+    const fines = await this.fineRepository.find({
+      where: { loan: { id: loanId } },
+    });
+
+    return fines.map((fine) => plainToInstance(ResponseFineDto, fine));
+  }
 }
