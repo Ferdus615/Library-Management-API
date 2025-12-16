@@ -38,20 +38,20 @@ export class FineService {
       paid: false,
     });
 
-    const saveFine = this.fineRepository.save(fine);
+    const saveFine = await this.fineRepository.save(fine);
 
     return plainToInstance(ResponseFineDto, saveFine);
   }
 
   async payFine(id: string): Promise<ResponseFineDto> {
     const fine = await this.fineRepository.findOne({ where: { id } });
-    if (!fine) throw new NotFoundException(`Fine nor found!`);
-    if (fine.paid) throw new BadRequestException('Fine alredy paid!');
+    if (!fine) throw new NotFoundException(`Fine not found!`);
+    if (fine.paid) throw new BadRequestException('Fine already paid!');
 
     fine.paid = true;
     fine.paid_at = new Date();
 
-    const saveFine = this.fineRepository.save(fine);
+    const saveFine = await this.fineRepository.save(fine);
 
     return plainToInstance(ResponseFineDto, saveFine);
   }
