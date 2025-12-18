@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -28,5 +29,13 @@ export class FineController {
     return this.fineService.payFine(id);
   }
 
-  
+  @Get()
+  async getAllFine(): Promise<ResponseFineDto[]> {
+    return this.fineService.getAllFine();
+  }
+
+  @Get(':id')
+  async getFineById(@Param() id: string): Promise<ResponseFineDto> {
+    return this.fineService.getFineById(id);
+  }
 }
