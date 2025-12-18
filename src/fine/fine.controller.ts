@@ -38,4 +38,9 @@ export class FineController {
   async getFineById(@Param() id: string): Promise<ResponseFineDto> {
     return this.fineService.getFineById(id);
   }
+
+  @Get(':userId')
+  async getFineByUser(@Param() userId: string): Promise<ResponseFineDto[]> {
+    return this.fineService.getFineByUser(userId);
+  }
 }
