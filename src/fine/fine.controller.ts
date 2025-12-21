@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Res,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -46,16 +47,25 @@ export class FineController {
 
   @Get(':id')
   async getFineById(@Param() id: string): Promise<ResponseFineDto> {
-    return this.fineService.getFineById(id);
+    const fine = await this.fineService.getFineById(id);
+    return plainToInstance(ResponseFineDto, fine, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get('user/:userId')
   async getFineByUser(@Param() userId: string): Promise<ResponseFineDto[]> {
-    return this.fineService.getFineByUser(userId);
+    const fines = await this.fineService.getFineByUser(userId);
+    return plainToInstance(ResponseFineDto, fines, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get('loan/:loanId')
   async getFineByLoan(@Param() loanId: string): Promise<ResponseFineDto[]> {
-    return this.fineService.getFineByLoan(loanId);
+    const fines = await this.fineService.getFineByLoan(loanId);
+    return plainToInstance(ResponseFineDto, fines, {
+      excludeExtraneousValues: true,
+    });
   }
 }
