@@ -18,10 +18,7 @@ export class FineCron {
     private fineRepository: Repository<Fine>,
   ) {}
 
-  // ------------------------------------------------------------------
-  // Runs every 12 hours (at 12:00 AM and 12:00 PM)
-  // CRON expression '0 0,12 * * *' means: minute 0, hour 0 AND 12, every day
-  // ------------------------------------------------------------------
+ 
   @Cron('0 0,12 * * *')
   async generateAndAccrueOverdueFines() {
     this.logger.log('Running 12-hour fine accrual job...');
