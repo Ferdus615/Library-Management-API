@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Fine } from './entities/fine.entity';
@@ -34,11 +38,49 @@ export class FineService {
       paid: false,
     });
 
-    const saveFine = this.fineRepository.save(fine);
+    const saveFine = await this.fineRepository.save(fine);
 
     return plainToInstance(ResponseFineDto, saveFine);
   }
 
- 
-  
+  async payFine(id: string): Promise<ResponseFineDto> {
+    const fine = await this.fineRepository.findOne({ where: { id } });
+    if (!fine) throw new NotFoundException(`Fine not found!`);
+    if (fine.paid) throw new BadRequestException('Fine already paid!');
+
+    fine.paid = true;
+    fine.paid_at = new Date();
+
+    const saveFine = await this.fineRepository.save(fine);
+
+    return plainToInstance(ResponseFineDto, saveFine);
+  }
+
+  async getAllFine(): Promise<ResponseFineDto[]> {
+    const fines = await this.fineRepository.find();
+    return fines.map((fine) => plainToInstance(ResponseFineDto, fine));
+  }
+
+  async getFineById(id: string): Promise<ResponseFineDto> {
+    const fine = await this.fineRepository.findOne({ where: { id } });
+    if (!fine) throw new NotFoundException(`Fine not found!`);
+
+    return plainToInstance(ResponseFineDto, fine);
+  }
+
+  async getFineByUser(userId: string): Promise<ResponseFineDto[]> {
+    const fines = await this.fineRepository.find({
+      where: { user: { id: userId } },
+    });
+
+    return fines.map((fine) => plainToInstance(ResponseFineDto, fine));
+  }
+
+  async getFineByLoan(loanId: string): Promise<ResponseFineDto[]> {
+    const fines = await this.fineRepository.find({
+      where: { loan: { id: loanId } },
+    });
+
+    return fines.map((fine) => plainToInstance(ResponseFineDto, fine));
+  }
 }

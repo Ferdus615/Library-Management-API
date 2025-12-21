@@ -1,77 +1,67 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Loan } from 'src/loan/entities/loan.entity';
 import { Repository } from 'typeorm';
 import { Fine } from '../entities/fine.entity';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class FineCron {
   private readonly logger = new Logger(FineCron.name);
-  private readonly FINE_RATE_PER_DAY = 10; // ₹10 per day
+  private readonly FINE_RATE_PER_DAY = 10; // BDT 10 per day
 
   constructor(
-    @InjectRepository(Loan)
-    private loanRepository: Repository<Loan>,
-
-    @InjectRepository(Fine)
-    private fineRepository: Repository<Fine>,
+    @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
+    @InjectRepository(Fine) private readonly fineRepository: Repository<Fine>,
   ) {}
 
- 
   @Cron('0 0,12 * * *')
-  async generateAndAccrueOverdueFines() {
-    this.logger.log('Running 12-hour fine accrual job...');
+  async AutoGenerateFines() {
+    this.logger.log('Running 12-hour fine accural job....');
 
     const now = new Date();
 
-    // 1. Find loans that are past their due date AND have NOT been returned yet
     const overdueLoans = await this.loanRepository
       .createQueryBuilder('loan')
-      .leftJoinAndSelect('loan.user', 'user') // Eagerly load the user
-      .where('loan.due_date < :now', { now: now.toISOString() }) // Past due date
-      .andWhere('loan.return_date IS NULL') // Book is still out
+      .leftJoinAndSelect('loan.user', 'user')
+      .where('loan.due_date < :now', { now: now.toISOString() })
+      .andWhere('loan.return_date IS NULL')
       .getMany();
 
     this.logger.log(`Found ${overdueLoans.length} active overdue loans.`);
 
     for (const loan of overdueLoans) {
-      // Calculate total overdue days based on the current time
       const due = new Date(loan.due_date);
 
-      // (Current time - Due time) / milliseconds_per_day
       const overdueDays = Math.ceil(
         (now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24),
       );
 
       const fineAmount = overdueDays * this.FINE_RATE_PER_DAY;
 
-      // 2. Check for existing fine
       let fine = await this.fineRepository.findOne({
         where: { loan: { id: loan.id } },
       });
 
       if (fine) {
-        // 3. If fine exists (UPDATE): Update the amount to the new total
-        fine.amount = fineAmount;
+        fine.total_amount = fineAmount;
         this.logger.log(
-          `Updated fine for Loan ${loan.id}. New amount: ${fineAmount}`,
+          `Update fine for loan ${loan.id}. New amount: ${fineAmount}`,
         );
       } else {
-        // 4. If fine does not exist (CREATE): Create the initial fine record
         fine = this.fineRepository.create({
           user: loan.user,
           loan,
-          amount: fineAmount,
+          total_amount: fineAmount,
           paid: false,
         });
+
         this.logger.log(
-          `Created initial fine for Loan ${loan.id}. Amount: ${fineAmount}`,
+          `Created initial fine for loan ${loan.id}. Amount: ${fineAmount}`,
         );
       }
-
       await this.fineRepository.save(fine);
     }
-    this.logger.log('12-hour fine accrual job finished.');
+    this.logger.log(`12-hour fine accural job finished.`);
   }
 }
