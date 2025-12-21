@@ -12,6 +12,7 @@ import {
 import { FineService } from './fine.service';
 import { CreateFineDto } from './dto/createFineDto.dto';
 import { ResponseFineDto } from './dto/responseFineDto.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('fine')
 export class FineController {
@@ -21,17 +22,26 @@ export class FineController {
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   @HttpCode(HttpStatus.CREATED)
   async createFine(@Body() dto: CreateFineDto): Promise<ResponseFineDto> {
-    return await this.fineService.createFine(dto);
+    const fine = await this.fineService.createFine(dto);
+    return plainToInstance(ResponseFineDto, fine, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Post('pay/:id')
   async payFine(@Param('id') id: string): Promise<ResponseFineDto> {
-    return this.fineService.payFine(id);
+    const payFine = await this.fineService.payFine(id);
+    return plainToInstance(ResponseFineDto, payFine, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get()
   async getAllFine(): Promise<ResponseFineDto[]> {
-    return this.fineService.getAllFine();
+    const fines = await this.fineService.getAllFine();
+    return plainToInstance(ResponseFineDto, fines, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get(':id')

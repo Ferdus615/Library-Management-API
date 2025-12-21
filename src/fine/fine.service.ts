@@ -5,12 +5,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { plainToInstance } from 'class-transformer';
 import { Fine } from './entities/fine.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Loan } from 'src/loan/entities/loan.entity';
 import { CreateFineDto } from './dto/createFineDto.dto';
 import { ResponseFineDto } from './dto/responseFineDto.dto';
-import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class FineService {

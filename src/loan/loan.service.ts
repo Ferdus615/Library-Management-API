@@ -5,12 +5,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
+import { plainToInstance } from 'class-transformer';
 import { Loan } from './entities/loan.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Book } from 'src/book/entities/book.entity';
 import { CreateLoanDto } from './dto/createLoanDto.dto';
 import { ResponseLoanDto } from './dto/responseLoanDto.dto';
-import { plainToInstance } from 'class-transformer';
 import { UpdateLoanDto } from './dto/updateLoanDto';
 import { LoanStatus } from './enums/loanStatus.enum';
 

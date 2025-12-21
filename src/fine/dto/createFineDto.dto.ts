@@ -1,4 +1,4 @@
-import { IsInt, IsNegative, IsUUID, Min } from 'class-validator';
+import { IsInt, IsUUID, Min } from 'class-validator';
 
 export class CreateFineDto {
   @IsUUID()
@@ -9,6 +9,5 @@ export class CreateFineDto {
 
   @IsInt()
   @Min(10)
-  @IsNegative()
   total_amount: number;
 }
