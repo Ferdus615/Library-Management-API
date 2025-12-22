@@ -8,45 +8,74 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'John' })
+  @ApiProperty({
+    description: 'The first name of the library member.',
+    example: 'John',
+    maxLength: 100,
+  })
   @IsNotEmpty()
   @IsString()
   first_name: string;
 
-  @ApiProperty({ example: 'Doe' })
+  @ApiProperty({
+    description: 'The last name of the library member.',
+    example: 'Doe',
+    maxLength: 100,
+  })
   @IsNotEmpty()
   @IsString()
   last_name: string;
 
-  @ApiProperty({ example: 'john.doe@example.com' })
+  @ApiProperty({
+    description: 'A unique email address used for login and notifications.',
+    example: 'john.doe@example.com',
+  })
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'strongPassword123!', minLength: 8 })
+  @ApiProperty({
+    description: 'Secure password for the user account (minimum 8 characters).',
+    example: 'strongPassword123!',
+    minLength: 8,
+    writeOnly: true, // Ensures password isn't shown in Swagger response examples
+  })
   @IsString()
   @MinLength(8)
   password: string;
 
-  @ApiPropertyOptional({ example: '01711223344' })
+  @ApiPropertyOptional({
+    description: 'Contact phone number (maximum 11 digits).',
+    example: '01711223344',
+    maxLength: 11,
+  })
   @IsOptional()
   @IsString()
   phone?: string;
 
-  @ApiPropertyOptional({ example: '123 Tech Avenue, Dhaka' })
+  @ApiPropertyOptional({
+    description: 'Physical residential address of the user.',
+    example: '123 Tech Avenue, Dhaka',
+  })
   @IsOptional()
   @IsString()
   address?: string;
 
   @ApiPropertyOptional({
+    description: 'The access level/role assigned to the user.',
     example: 'member',
     enum: ['admin', 'librarian', 'member'],
+    default: 'member',
   })
   @IsOptional()
   @IsString()
   role?: string;
 
-  @ApiPropertyOptional({ example: '2026-12-31' })
+  @ApiPropertyOptional({
+    description: 'The date when the library membership expires.',
+    example: '2026-12-31',
+    type: Date,
+  })
   @IsOptional()
   membership_expiry?: Date;
 }
