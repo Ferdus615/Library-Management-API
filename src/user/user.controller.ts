@@ -13,16 +13,24 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/createUserDto.dto';
 import { ResponseUserDto } from './dto/responseUserDto';
 import { UpdateUserDto } from './dto/updateUserDto.dto';
-import { ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Users')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
   @ApiOperation({
-    summary: 'Create a new user',
-    description: 'Registers a new user in the library system.',
+    summary: 'Register a new user',
+    description:
+      'Creates a new user record. Emails must be unique across the system.',
   })
   @ApiResponse({
     status: 201,
@@ -31,7 +39,7 @@ export class UserController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Validation failed or Email already exists.',
+    description: 'Bad Request - Validation failed or email exists.',
   })
   async createUser(@Body() dto: CreateUserDto): Promise<ResponseUserDto> {
     return await this.userService.createUser(dto);
@@ -52,47 +60,34 @@ export class UserController {
   }
 
   @Get('names')
-  @ApiOperation({
-    summary: 'Find users by name',
-    description: 'Search users using a partial name query.',
+  @ApiOperation({ summary: 'Search users by name' })
+  @ApiQuery({
+    name: 'name',
+    description: 'Partial or full name search string',
+    example: 'John',
   })
-  @ApiQuery({ name: 'name', required: true, example: 'John' })
-  @ApiResponse({
-    status: 200,
-    description: 'Matching users found.',
-    type: [ResponseUserDto],
-  })
+  @ApiResponse({ status: 200, type: [ResponseUserDto] })
   async findByName(@Query('name') name: string): Promise<ResponseUserDto[]> {
     return await this.userService.findByName(name);
   }
 
   @Get('phones')
-  @ApiOperation({
-    summary: 'Find user by phone',
-    description: 'Fetch a single user using their phone number.',
+  @ApiOperation({ summary: 'Search user by phone number' })
+  @ApiQuery({
+    name: 'phone',
+    description: 'The exact phone number of the user',
+    example: '01711223344',
   })
-  @ApiQuery({ name: 'phone', required: true, example: '01711223344' })
-  @ApiResponse({
-    status: 200,
-    description: 'User found.',
-    type: ResponseUserDto,
-  })
+  @ApiResponse({ status: 200, type: ResponseUserDto })
   @ApiResponse({ status: 404, description: 'User not found.' })
   async findByPhone(@Query('phone') phone: string): Promise<ResponseUserDto> {
     return await this.userService.findByPhone(phone);
   }
 
   @Get(':id')
-  @ApiOperation({
-    summary: 'Get user by ID',
-    description: 'Fetches detailed user information by their UUID.',
-  })
-  @ApiParam({ name: 'id', description: 'The UUID of the user' })
-  @ApiResponse({
-    status: 200,
-    description: 'User found.',
-    type: ResponseUserDto,
-  })
+  @ApiOperation({ summary: 'Get user details' })
+  @ApiParam({ name: 'id', description: 'User UUID', format: 'uuid' })
+  @ApiResponse({ status: 200, type: ResponseUserDto })
   @ApiResponse({ status: 404, description: 'User not found.' })
   async findOneUser(
     @Param('id', ParseUUIDPipe) id: string,
