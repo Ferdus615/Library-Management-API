@@ -11,6 +11,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Loan } from 'src/loan/entities/loan.entity';
 import { CreateFineDto } from './dto/createFineDto.dto';
 import { ResponseFineDto } from './dto/responseFineDto.dto';
+import { PayFineDto } from './dto/payFineDto.dto';
 
 @Injectable()
 export class FineService {
@@ -43,13 +44,14 @@ export class FineService {
     return plainToInstance(ResponseFineDto, saveFine);
   }
 
-  async payFine(id: string): Promise<ResponseFineDto> {
+  async payFine(id: string, dto: PayFineDto): Promise<ResponseFineDto> {
     const fine = await this.fineRepository.findOne({ where: { id } });
     if (!fine) throw new NotFoundException(`Fine not found!`);
     if (fine.paid) throw new BadRequestException('Fine already paid!');
 
-    fine.paid = true;
-    fine.paid_at = new Date();
+    if (dto.paid !== undefined) fine.paid = dto.paid;
+
+    fine.paid_at = dto.paid_at || new Date();
 
     const saveFine = await this.fineRepository.save(fine);
 

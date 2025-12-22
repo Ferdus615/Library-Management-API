@@ -6,7 +6,6 @@ import {
   HttpStatus,
   Param,
   Post,
-  Res,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -14,6 +13,7 @@ import { FineService } from './fine.service';
 import { CreateFineDto } from './dto/createFineDto.dto';
 import { ResponseFineDto } from './dto/responseFineDto.dto';
 import { plainToInstance } from 'class-transformer';
+import { PayFineDto } from './dto/payFineDto.dto';
 
 @Controller('fine')
 export class FineController {
@@ -30,8 +30,11 @@ export class FineController {
   }
 
   @Post('pay/:id')
-  async payFine(@Param('id') id: string): Promise<ResponseFineDto> {
-    const payFine = await this.fineService.payFine(id);
+  async payFine(
+    @Param('id') id: string,
+    @Body() dto: PayFineDto,
+  ): Promise<ResponseFineDto> {
+    const payFine = await this.fineService.payFine(id, dto);
     return plainToInstance(ResponseFineDto, payFine, {
       excludeExtraneousValues: true,
     });
