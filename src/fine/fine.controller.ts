@@ -31,7 +31,11 @@ export class FineController {
     description: 'Fine created successfully.',
     type: ResponseFineDto,
   })
-  @ApiResponse({ status: 404, description: 'User or Loan not found.' })
+  @ApiResponse({
+    status: 404,
+    description:
+      'User not found OR Loan does not exist for this specific user.',
+  })
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   @HttpCode(HttpStatus.CREATED)
   async createFine(@Body() dto: CreateFineDto): Promise<ResponseFineDto> {

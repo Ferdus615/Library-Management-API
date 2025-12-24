@@ -12,6 +12,7 @@ import { Loan } from 'src/loan/entities/loan.entity';
 import { CreateFineDto } from './dto/createFineDto.dto';
 import { ResponseFineDto } from './dto/responseFineDto.dto';
 import { PayFineDto } from './dto/payFineDto.dto';
+import { LoanStatus } from 'src/loan/enums/loanStatus.enum';
 
 @Injectable()
 export class FineService {
@@ -41,16 +42,20 @@ export class FineService {
     if (existingFine)
       throw new BadRequestException(`A fine already exist for this loan!`);
 
-    const fine = this.fineRepository.create({
-      user,
-      loan,
-      total_amount: dto.total_amount,
-      paid: false,
-    });
+    if (loan.status === LoanStatus.OVERDUE) {
+      const fine = this.fineRepository.create({
+        user,
+        loan,
+        total_amount: dto.total_amount,
+        paid: false,
+      });
 
-    const saveFine = await this.fineRepository.save(fine);
+      const saveFine = await this.fineRepository.save(fine);
 
-    return plainToInstance(ResponseFineDto, saveFine);
+      return plainToInstance(ResponseFineDto, saveFine);
+    } else {
+      throw new BadRequestException(`The loan is not overdue yet!`);
+    }
   }
 
   async payFine(id: string, dto: PayFineDto): Promise<ResponseFineDto> {
