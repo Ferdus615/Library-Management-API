@@ -28,9 +28,18 @@ export class FineService {
     if (!user) throw new NotFoundException(`User not found!`);
 
     const loan = await this.loanRepository.findOne({
-      where: { id: dto.loan_id },
+      where: { id: dto.loan_id, user: { id: dto.user_id } },
     });
-    if (!loan) throw new NotFoundException(`Loan not found!`);
+    if (!loan)
+      throw new NotFoundException(
+        `Loan not found OR loan dosen't belong to this user!`,
+      );
+
+    const existingFine = await this.fineRepository.findOne({
+      where: { loan: { id: dto.loan_id } },
+    });
+    if (existingFine)
+      throw new BadRequestException(`A fine already exist for this loan!`);
 
     const fine = this.fineRepository.create({
       user,
