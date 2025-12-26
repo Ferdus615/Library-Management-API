@@ -23,15 +23,15 @@ export class FineService {
   ) {}
 
   async createFine(dto: CreateFineDto): Promise<ResponseFineDto> {
-    const user = await this.userRepositoty.findOne({
+    const findUser = await this.userRepositoty.findOne({
       where: { id: dto.user_id },
     });
-    if (!user) throw new NotFoundException(`User not found!`);
+    if (!findUser) throw new NotFoundException(`User not found!`);
 
-    const loan = await this.loanRepository.findOne({
+    const findLoan = await this.loanRepository.findOne({
       where: { id: dto.loan_id, user: { id: dto.user_id } },
     });
-    if (!loan)
+    if (!findLoan)
       throw new NotFoundException(
         `Loan not found OR loan dosen't belong to this user!`,
       );
@@ -42,61 +42,61 @@ export class FineService {
     if (existingFine)
       throw new BadRequestException(`A fine already exist for this loan!`);
 
-    if (loan.status === LoanStatus.OVERDUE) {
+    if (findLoan.status === LoanStatus.OVERDUE) {
       const fine = this.fineRepository.create({
-        user,
-        loan,
+        user: findUser,
+        loan: findLoan,
         total_amount: dto.total_amount,
         paid: false,
       });
 
-      const saveFine = await this.fineRepository.save(fine);
+      const savedFine = await this.fineRepository.save(fine);
 
-      return plainToInstance(ResponseFineDto, saveFine);
+      return plainToInstance(ResponseFineDto, savedFine);
     } else {
       throw new BadRequestException(`The loan is not overdue yet!`);
     }
   }
 
   async payFine(id: string, dto: PayFineDto): Promise<ResponseFineDto> {
-    const fine = await this.fineRepository.findOne({ where: { id } });
-    if (!fine) throw new NotFoundException(`Fine not found!`);
-    if (fine.paid) throw new BadRequestException('Fine already paid!');
+    const findFine = await this.fineRepository.findOne({ where: { id } });
+    if (!findFine) throw new NotFoundException(`Fine not found!`);
+    if (findFine.paid) throw new BadRequestException('Fine already paid!');
 
-    if (dto.paid !== undefined) fine.paid = dto.paid;
+    if (dto.paid !== undefined) findFine.paid = dto.paid;
 
-    fine.paid_at = dto.paid_at || new Date();
+    findFine.paid_at = dto.paid_at || new Date();
 
-    const saveFine = await this.fineRepository.save(fine);
+    const savedFine = await this.fineRepository.save(findFine);
 
-    return plainToInstance(ResponseFineDto, saveFine);
+    return plainToInstance(ResponseFineDto, savedFine);
   }
 
   async getAllFine(): Promise<ResponseFineDto[]> {
-    const fines = await this.fineRepository.find();
-    return fines.map((fine) => plainToInstance(ResponseFineDto, fine));
+    const findFines = await this.fineRepository.find();
+    return findFines.map((fine) => plainToInstance(ResponseFineDto, fine));
   }
 
   async getFineById(id: string): Promise<ResponseFineDto> {
-    const fine = await this.fineRepository.findOne({ where: { id } });
-    if (!fine) throw new NotFoundException(`Fine not found!`);
+    const findFine = await this.fineRepository.findOne({ where: { id } });
+    if (!findFine) throw new NotFoundException(`Fine not found!`);
 
-    return plainToInstance(ResponseFineDto, fine);
+    return plainToInstance(ResponseFineDto, findFine);
   }
 
   async getFineByUser(userId: string): Promise<ResponseFineDto[]> {
-    const fines = await this.fineRepository.find({
+    const findFines = await this.fineRepository.find({
       where: { user: { id: userId } },
     });
 
-    return fines.map((fine) => plainToInstance(ResponseFineDto, fine));
+    return findFines.map((fine) => plainToInstance(ResponseFineDto, fine));
   }
 
   async getFineByLoan(loanId: string): Promise<ResponseFineDto[]> {
-    const fines = await this.fineRepository.find({
+    const findFines = await this.fineRepository.find({
       where: { loan: { id: loanId } },
     });
 
-    return fines.map((fine) => plainToInstance(ResponseFineDto, fine));
+    return findFines.map((fine) => plainToInstance(ResponseFineDto, fine));
   }
 }
