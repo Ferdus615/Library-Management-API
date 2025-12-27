@@ -17,38 +17,38 @@ export class UserService {
   async createUser(dto: CreateUserDto): Promise<ResponseUserDto> {
     const hashedPass = await bcrypt.hash(dto.password, 10);
 
-    const user = this.userRepository.create({
+    const findUser = this.userRepository.create({
       ...dto,
       password: hashedPass,
     });
 
-    const saveUser = await this.userRepository.save(user);
-    return new ResponseUserDto(saveUser);
+    const savedUser = await this.userRepository.save(findUser);
+    return new ResponseUserDto(savedUser);
   }
 
   async findAllUser(): Promise<ResponseUserDto[]> {
-    const users = await this.userRepository.find();
-    return users.map((user) => new ResponseUserDto(user));
+    const findUsers = await this.userRepository.find();
+    return findUsers.map((user) => new ResponseUserDto(user));
   }
 
   async findOneUser(id: string): Promise<ResponseUserDto> {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`User with id:${id} not found!`);
+    const findUser = await this.userRepository.findOne({ where: { id } });
+    if (!findUser) throw new NotFoundException(`User with id:${id} not found!`);
 
-    return new ResponseUserDto(user);
+    return new ResponseUserDto(findUser);
   }
 
   async findByEmail(email: string): Promise<ResponseUserDto> {
-    const user = await this.userRepository.findOne({ where: { email } });
-    if (!user) {
+    const findUser = await this.userRepository.findOne({ where: { email } });
+    if (!findUser) {
       throw new NotFoundException(`User with email:${email} not found!`);
     }
 
-    return new ResponseUserDto(user);
+    return new ResponseUserDto(findUser);
   }
 
   async findByName(name: string): Promise<ResponseUserDto[]> {
-    const users = await this.userRepository.find({
+    const findUsers = await this.userRepository.find({
       where: [
         {
           first_name: ILike(`%${name}%`),
@@ -57,38 +57,38 @@ export class UserService {
       ],
     });
 
-    if (!users || users.length === 0) {
+    if (!findUsers || findUsers.length === 0) {
       throw new NotFoundException(`User not found!`);
     }
 
-    return users.map((user) => new ResponseUserDto(user));
+    return findUsers.map((user) => new ResponseUserDto(user));
   }
 
   async findByPhone(phone: string): Promise<ResponseUserDto> {
-    const user = await this.userRepository.findOne({ where: { phone } });
-    if (!user) throw new NotFoundException(`User not found!`);
+    const findUser = await this.userRepository.findOne({ where: { phone } });
+    if (!findUser) throw new NotFoundException(`User not found!`);
 
-    return new ResponseUserDto(user);
+    return new ResponseUserDto(findUser);
   }
 
   async updateUser(id: string, dto: UpdateUserDto): Promise<ResponseUserDto> {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`User with id:${id} not found!`);
+    const findUser = await this.userRepository.findOne({ where: { id } });
+    if (!findUser) throw new NotFoundException(`User with id:${id} not found!`);
 
     if (dto.password) {
       dto.password = await bcrypt.hash(dto.password, 10);
     }
 
-    Object.assign(user, dto);
-    const result = await this.userRepository.save(user);
+    Object.assign(findUser, dto);
+    const result = await this.userRepository.save(findUser);
     return new ResponseUserDto(result);
   }
 
   async removeUser(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`User with id:${id} not found!`);
+    const findUser = await this.userRepository.findOne({ where: { id } });
+    if (!findUser) throw new NotFoundException(`User with id:${id} not found!`);
 
-    await this.userRepository.remove(user);
+    await this.userRepository.remove(findUser);
     return { message: `User has been successfully removed!` };
   }
 }
