@@ -23,79 +23,79 @@ export class LoanService {
   ) {}
 
   async createLoan(dto: CreateLoanDto): Promise<ResponseLoanDto> {
-    const user = await this.userRepository.findOne({
+    const findUser = await this.userRepository.findOne({
       where: { id: dto.user_id },
     });
-    if (!user) throw new NotFoundException(`User not `);
+    if (!findUser) throw new NotFoundException(`User not `);
 
-    const book = await this.bookRepository.findOne({
+    const findBook = await this.bookRepository.findOne({
       where: { id: dto.book_id },
     });
-    if (!book) throw new NotFoundException(`Book not found`);
+    if (!findBook) throw new NotFoundException(`Book not found`);
 
-    if (book.available_copies <= 0) {
+    if (findBook.available_copies <= 0) {
       throw new BadRequestException(`Book is not available!`);
     }
 
-    book.available_copies -= 1;
-    await this.bookRepository.save(book);
+    findBook.available_copies -= 1;
+    await this.bookRepository.save(findBook);
 
     const loan = this.loanRepository.create({
-      user,
-      book,
+      user: findUser,
+      book: findBook,
       issue_date: dto.issue_date,
       due_date: dto.due_date,
     });
 
-    const saveLoan = await this.loanRepository.save(loan);
+    const savedLoan = await this.loanRepository.save(loan);
 
     const fullyLoadedLoan = await this.loanRepository.findOne({
-      where: { id: saveLoan.id },
+      where: { id: savedLoan.id },
     });
 
     return plainToInstance(ResponseLoanDto, fullyLoadedLoan);
   }
 
   async findAllLoan(): Promise<ResponseLoanDto[]> {
-    const loan = await this.loanRepository.find();
-    return plainToInstance(ResponseLoanDto, loan);
+    const findLoans = await this.loanRepository.find();
+    return plainToInstance(ResponseLoanDto, findLoans);
   }
 
   async findOneLoan(id: string): Promise<ResponseLoanDto> {
-    const loan = await this.loanRepository.findOne({ where: { id } });
-    if (!loan) throw new NotFoundException(`No such loan record found!`);
+    const findLoan = await this.loanRepository.findOne({ where: { id } });
+    if (!findLoan) throw new NotFoundException(`No such loan record found!`);
 
-    return plainToInstance(ResponseLoanDto, loan);
+    return plainToInstance(ResponseLoanDto, findLoan);
   }
 
   async updateLoan(id: string, dto: UpdateLoanDto): Promise<ResponseLoanDto> {
-    const loan = await this.loanRepository.findOne({ where: { id } });
-    if (!loan) throw new NotFoundException(`No such loan record found!`);
+    const findLoan = await this.loanRepository.findOne({ where: { id } });
+    if (!findLoan) throw new NotFoundException(`No such loan record found!`);
 
-    if (dto.return_date && loan.status !== LoanStatus.RETURNED) {
-      loan.return_date = dto.return_date;
-      loan.status = LoanStatus.RETURNED;
+    if (dto.return_date && findLoan.status !== LoanStatus.RETURNED) {
+      findLoan.return_date = dto.return_date;
+      findLoan.status = LoanStatus.RETURNED;
 
-      const book = loan.book;
+      const book = findLoan.book;
       book.available_copies += 1;
       await this.bookRepository.save(book);
     }
 
     if (dto.status && dto.status !== LoanStatus.RETURNED) {
-      if (loan.status !== LoanStatus.RETURNED) {
-        loan.status = dto.status;
+      if (findLoan.status !== LoanStatus.RETURNED) {
+        findLoan.status = dto.status;
       }
     }
 
-    const updateLoan = await this.loanRepository.save(loan);
-    return plainToInstance(ResponseLoanDto, updateLoan);
+    const updatedLoan = await this.loanRepository.save(findLoan);
+    return plainToInstance(ResponseLoanDto, updatedLoan);
   }
 
   async deleteLoan(id: string): Promise<{ message: string }> {
-    const loan = await this.loanRepository.findOne({ where: { id } });
-    if (!loan) throw new NotFoundException(`No such loan record found!`);
+    const updatedLoan = await this.loanRepository.findOne({ where: { id } });
+    if (!updatedLoan) throw new NotFoundException(`No such loan record found!`);
 
-    await this.loanRepository.remove(loan);
+    await this.loanRepository.remove(updatedLoan);
     return { message: `Loan record deleted successfully!` };
   }
 
