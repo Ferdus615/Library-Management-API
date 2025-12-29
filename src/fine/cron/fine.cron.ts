@@ -28,7 +28,9 @@ export class FineCron {
       .andWhere('loan.return_date IS NULL')
       .getMany();
 
-    this.logger.log(`Found ${overdueLoans.length} active overdue loans.`);
+    this.logger.log(
+      `${now.toISOString()}: Found ${overdueLoans.length} active overdue loans.`,
+    );
 
     for (const loan of overdueLoans) {
       const due = new Date(loan.due_date);

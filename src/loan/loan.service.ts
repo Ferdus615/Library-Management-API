@@ -103,19 +103,21 @@ export class LoanService {
   // AUTO MARK OVERDUE (cron job)
   // -------------------------------------
 
-  async autoMarkOverDue() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  // async autoMarkOverDue() {
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
 
-    const overdueLoans = await this.loanRepository.find({
-      where: { status: LoanStatus.ISSUED, due_date: LessThan(today) },
-    });
+  //   const overdueLoans = await this.loanRepository.find({
+  //     where: { status: LoanStatus.ISSUED, due_date: LessThan(today) },
+  //   });
 
-    for (const loan of overdueLoans) {
-      loan.status = LoanStatus.OVERDUE;
-      await this.loanRepository.save(loan);
-    }
+  //   this.logger.log
 
-    return overdueLoans.length;
-  }
+  //   for (const loan of overdueLoans) {
+  //     loan.status = LoanStatus.OVERDUE;
+  //     await this.loanRepository.save(loan);
+  //   }
+
+  //   return overdueLoans.length;
+  // }
 }

@@ -14,11 +14,24 @@ export class OverdueLoanCron {
   ) {}
 
   @Cron(CronExpression.EVERY_12_HOURS)
-  markOverdueLoan() {
+  async AutoMarkOverdueLoan() {
     const today = new Date();
 
     const find_overdues = await this.loanRespository.find({
       where: { status: LoanStatus.ISSUED, due_date: LessThan(today) },
     });
+
+    this.logger.log(
+      `${today.toISOString()}: Found ${find_overdues.length} overdue loan!`,
+    );
+
+    for (const loan of find_overdues) {
+      loan.status = LoanStatus.OVERDUE;
+      await this.loanRespository.save(loan);
+
+      this.logger.log(
+        `Changed status of loan:${loan.id} to overdue. Due date was ${loan.due_date.toISOString()}`,
+      );
+    }
   }
 }
