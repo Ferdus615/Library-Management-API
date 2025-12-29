@@ -23,10 +23,10 @@ export class FineService {
   ) {}
 
   async createFine(dto: CreateFineDto): Promise<ResponseFineDto> {
-    const user = await this.userRepositoty.findOne({
+    const findUser = await this.userRepositoty.findOne({
       where: { id: dto.user_id },
     });
-    if (!user) throw new NotFoundException(`User not found!`);
+    if (!findUser) throw new NotFoundException(`User not found!`);
 
     const loan = await this.loanRepository.findOne({
       where: { id: dto.loan_id, user: { id: dto.user_id } },
@@ -51,7 +51,6 @@ export class FineService {
       });
 
       const saveFine = await this.fineRepository.save(fine);
-
       return plainToInstance(ResponseFineDto, saveFine);
     } else {
       throw new BadRequestException(`The loan is not overdue yet!`);
