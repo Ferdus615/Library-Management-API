@@ -26,7 +26,7 @@ export class LoanService {
     const findUser = await this.userRepository.findOne({
       where: { id: dto.user_id },
     });
-    if (!findUser) throw new NotFoundException(`User not `);
+    if (!findUser) throw new NotFoundException(`User not found!`);
 
     const findBook = await this.bookRepository.findOne({
       where: { id: dto.book_id },
@@ -43,7 +43,7 @@ export class LoanService {
     const loan = this.loanRepository.create({
       user: findUser,
       book: findBook,
-      issue_date: dto.issue_date,
+      issue_date: new Date(),
       due_date: dto.due_date,
     });
 

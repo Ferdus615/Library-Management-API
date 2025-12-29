@@ -11,9 +11,5 @@ export class CreateLoanDto {
 
   @IsDateString()
   @IsNotEmpty()
-  issue_date: Date;
-
-  @IsDateString()
-  @IsNotEmpty()
   due_date: Date;
 }
