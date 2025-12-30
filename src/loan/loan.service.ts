@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Loan } from './entities/loan.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -98,26 +98,4 @@ export class LoanService {
     await this.loanRepository.remove(updatedLoan);
     return { message: `Loan record deleted successfully!` };
   }
-
-  // -------------------------------------
-  // AUTO MARK OVERDUE (cron job)
-  // -------------------------------------
-
-  // async autoMarkOverDue() {
-  //   const today = new Date();
-  //   today.setHours(0, 0, 0, 0);
-
-  //   const overdueLoans = await this.loanRepository.find({
-  //     where: { status: LoanStatus.ISSUED, due_date: LessThan(today) },
-  //   });
-
-  //   this.logger.log
-
-  //   for (const loan of overdueLoans) {
-  //     loan.status = LoanStatus.OVERDUE;
-  //     await this.loanRepository.save(loan);
-  //   }
-
-  //   return overdueLoans.length;
-  // }
 }
