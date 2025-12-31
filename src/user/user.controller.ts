@@ -21,6 +21,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
+import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -126,6 +127,15 @@ export class UserController {
   async findByEmail(@Param('email') email: string): Promise<ResponseUserDto> {
     const user = await this.userService.findByEmail(email);
     return plainToInstance(ResponseUserDto, user, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Get('loans/:id')
+  async findUserLoan(@Param('id') id: string): Promise<ResponseLoanDto[]> {
+    const loans = await this.userService.findUserLoan(id);
+
+    return plainToInstance(ResponseLoanDto, loans, {
       excludeExtraneousValues: true,
     });
   }

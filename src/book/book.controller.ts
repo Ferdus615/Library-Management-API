@@ -15,7 +15,7 @@ import { ResponseBookDto } from './dto/responseBookDto.dto';
 import { plainToInstance } from 'class-transformer';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 
-@ApiTags('book')
+@ApiTags('books')
 @Controller('book')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
@@ -87,7 +87,7 @@ export class BookController {
     });
   }
 
-  @Get('/loans/:id')
+  @Get('loans/:id')
   @ApiOperation({
     summary: 'Retrieve loan history for a specific book',
     description:

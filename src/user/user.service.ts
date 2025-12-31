@@ -7,12 +7,17 @@ import { CreateUserDto } from './dto/createUserDto.dto';
 import { ResponseUserDto } from './dto/responseUserDto';
 import { UpdateUserDto } from './dto/updateUserDto.dto';
 import { plainToInstance } from 'class-transformer';
+import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
+import { Loan } from 'src/loan/entities/loan.entity';
+import { Reservation } from 'src/reservation/entities/reservation.entity';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
+    @InjectRepository(Reservation)
+    private readonly reservationRepository: Repository<Reservation>,
   ) {}
 
   async createUser(dto: CreateUserDto): Promise<ResponseUserDto> {
@@ -70,6 +75,19 @@ export class UserService {
     if (!findUser) throw new NotFoundException(`User not found!`);
 
     return plainToInstance(ResponseUserDto, findUser);
+  }
+
+  async findUserLoan(id: string): Promise<ResponseLoanDto[]> {
+    const findUser = await this.userRepository.findOne({ where: { id } });
+    if (!findUser) throw new NotFoundException(`User with od:${id} not found!`);
+
+    const findLoans = await this.loanRepository.find({
+      where: { user: { id } },
+      relations: ['book'],
+      order: { issue_date: 'DESC' },
+    });
+
+    return plainToInstance(ResponseLoanDto, findLoans);
   }
 
   async updateUser(id: string, dto: UpdateUserDto): Promise<ResponseUserDto> {
