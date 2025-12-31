@@ -2,8 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { MemberStatus } from '../enum/member.enum';
+import { Loan } from 'src/loan/entities/loan.entity';
+import { Reservation } from 'src/reservation/entities/reservation.entity';
 
 @Entity('users')
 export class User {
@@ -28,14 +32,20 @@ export class User {
   @Column({ type: 'text', nullable: true })
   address: string;
 
-  @Column({ default: 'member' }) //admin | librarian | member
+  @Column({ type: 'enum', enum: MemberStatus, default: 'member' })
   role: string;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   membership_expiry: Date;
 
   @Column({ default: true })
   is_active: boolean;
+
+  @OneToMany(() => Loan, (Loan) => Loan.user)
+  loans: Loan[];
+
+  @OneToMany(() => Reservation, (reservation) => reservation.user)
+  reservations: Reservation[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
