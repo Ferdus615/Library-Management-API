@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/createUserDto.dto';
@@ -20,6 +21,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
+import { resolveSoa } from 'dns';
 
 @ApiTags('Users')
 @Controller('user')
@@ -42,7 +45,10 @@ export class UserController {
     description: 'Bad Request - Validation failed or email exists.',
   })
   async createUser(@Body() dto: CreateUserDto): Promise<ResponseUserDto> {
-    return await this.userService.createUser(dto);
+    const user = await this.userService.createUser(dto);
+    return plainToInstance(ResponseUserDto, user, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get()
@@ -56,7 +62,10 @@ export class UserController {
     type: [ResponseUserDto],
   })
   async findAllUser(): Promise<ResponseUserDto[]> {
-    return await this.userService.findAllUser();
+    const users = await this.userService.findAllUser();
+    return plainToInstance(ResponseUserDto, users, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get('names')
@@ -68,7 +77,10 @@ export class UserController {
   })
   @ApiResponse({ status: 200, type: [ResponseUserDto] })
   async findByName(@Query('name') name: string): Promise<ResponseUserDto[]> {
-    return await this.userService.findByName(name);
+    const user = await this.userService.findByName(name);
+    return plainToInstance(ResponseUserDto, user, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get('phones')
@@ -81,7 +93,10 @@ export class UserController {
   @ApiResponse({ status: 200, type: ResponseUserDto })
   @ApiResponse({ status: 404, description: 'User not found.' })
   async findByPhone(@Query('phone') phone: string): Promise<ResponseUserDto> {
-    return await this.userService.findByPhone(phone);
+    const user = await this.userService.findByPhone(phone);
+    return plainToInstance(ResponseUserDto, user, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get(':id')
@@ -92,7 +107,10 @@ export class UserController {
   async findOneUser(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ResponseUserDto> {
-    return await this.userService.findOneUser(id);
+    const user = await this.userService.findOneUser(id);
+    return plainToInstance(ResponseUserDto, user, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get('email/:email')
@@ -108,7 +126,10 @@ export class UserController {
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
   async findByEmail(@Param('email') email: string): Promise<ResponseUserDto> {
-    return await this.userService.findByEmail(email);
+    const user = await this.userService.findByEmail(email);
+    return plainToInstance(ResponseUserDto, user, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Patch(':id')
@@ -127,7 +148,10 @@ export class UserController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateUserDto,
   ): Promise<ResponseUserDto> {
-    return await this.userService.updateUser(id, dto);
+    const user = await this.userService.updateUser(id, dto);
+    return plainToInstance(ResponseUserDto, user, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Delete(':id')

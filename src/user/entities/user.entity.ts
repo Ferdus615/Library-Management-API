@@ -4,6 +4,7 @@ import {
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { MemberStatus } from '../enum/member.enum';
 import { Loan } from 'src/loan/entities/loan.entity';
@@ -32,7 +33,7 @@ export class User {
   @Column({ type: 'text', nullable: true })
   address: string;
 
-  @Column({ type: 'enum', enum: MemberStatus, default: 'member' })
+  @Column({ type: 'enum', enum: MemberStatus, default: MemberStatus.MEMBER })
   role: string;
 
   @Column({ type: 'timestamptz', nullable: true })
@@ -50,6 +51,6 @@ export class User {
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
 }

@@ -72,11 +72,6 @@ export class UserService {
     return plainToInstance(ResponseUserDto, findUser);
   }
 
-  // async findAllReservation(id: string): Promise<ResponseUserDto[]> {
-  //   const findUser = await this.userRepository.find({ where: { id } });
-  //   if (!findUser) throw new NotFoundException(`User not Found!`);
-  // }
-
   async updateUser(id: string, dto: UpdateUserDto): Promise<ResponseUserDto> {
     const findUser = await this.userRepository.findOne({ where: { id } });
     if (!findUser) throw new NotFoundException(`User with id:${id} not found!`);
