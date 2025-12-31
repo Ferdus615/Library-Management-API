@@ -11,6 +11,7 @@ import { Book } from './entities/book.entity';
 import { ResponseBookDto } from './dto/responseBookDto.dto';
 import { plainToInstance } from 'class-transformer';
 import { Loan } from 'src/loan/entities/loan.entity';
+import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 
 @Injectable()
 export class BookService {
@@ -58,7 +59,7 @@ export class BookService {
     return plainToInstance(ResponseBookDto, findBook);
   }
 
-  async findBookLoan(id: string): Promise<ResponseBookDto[]> {
+  async findBookLoans(id: string): Promise<ResponseLoanDto[]> {
     const findBook = await this.bookRepository.findOne({ where: { id } });
     if (!findBook) throw new NotFoundException(`Book with id:${id} not found!`);
 
@@ -68,7 +69,7 @@ export class BookService {
       order: { issue_date: 'DESC' },
     });
 
-    return plainToInstance(ResponseBookDto, loans);
+    return plainToInstance(ResponseLoanDto, loans);
   }
 
   async updateBook(
