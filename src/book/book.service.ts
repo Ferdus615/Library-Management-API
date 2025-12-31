@@ -10,12 +10,13 @@ import { Repository } from 'typeorm';
 import { Book } from './entities/book.entity';
 import { ResponseBookDto } from './dto/responseBookDto.dto';
 import { plainToInstance } from 'class-transformer';
+import { Loan } from 'src/loan/entities/loan.entity';
 
 @Injectable()
 export class BookService {
   constructor(
-    @InjectRepository(Book)
-    private readonly bookRepository: Repository<Book>,
+    @InjectRepository(Book) private readonly bookRepository: Repository<Book>,
+    @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
   ) {}
 
   async createBook(
@@ -55,6 +56,19 @@ export class BookService {
     if (!findBook) throw new NotFoundException(`Book with ID-${id} not found`);
 
     return plainToInstance(ResponseBookDto, findBook);
+  }
+
+  async findBookLoan(id: string): Promise<ResponseBookDto[]> {
+    const findBook = await this.bookRepository.findOne({ where: { id } });
+    if (!findBook) throw new NotFoundException(`Book with id:${id} not found!`);
+
+    const loans = await this.loanRepository.find({
+      where: { book: { id } },
+      relations: ['user'],
+      order: { issue_date: 'DESC' },
+    });
+
+    return plainToInstance(ResponseBookDto, loans);
   }
 
   async updateBook(

@@ -1,3 +1,4 @@
+import { Loan } from 'src/loan/entities/loan.entity';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -26,6 +27,9 @@ export class Book {
 
   @Column({ type: 'int', default: 1 })
   available_copies: number;
+
+  @OneToMany(() => Loan, (loan) => loan.book)
+  loans: Loan[];
 
   @OneToMany(() => Reservation, (reservation) => reservation.book)
   reservations: Reservation[];
