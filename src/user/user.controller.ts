@@ -8,7 +8,6 @@ import {
   Patch,
   Post,
   Query,
-  Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/createUserDto.dto';
@@ -22,7 +21,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
-import { resolveSoa } from 'dns';
 
 @ApiTags('Users')
 @Controller('user')

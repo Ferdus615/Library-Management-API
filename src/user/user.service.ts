@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Res } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { ILike, Repository } from 'typeorm';
@@ -6,7 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/createUserDto.dto';
 import { ResponseUserDto } from './dto/responseUserDto';
 import { UpdateUserDto } from './dto/updateUserDto.dto';
-import { plainToClass, plainToInstance } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UserService {

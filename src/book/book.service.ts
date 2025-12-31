@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Book } from './entities/book.entity';
 import { ResponseBookDto } from './dto/responseBookDto.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class BookService {
@@ -35,23 +36,25 @@ export class BookService {
       }),
     );
 
-    const saveBook = await this.bookRepository.save(addBook);
+    const savedBook = await this.bookRepository.save(addBook);
 
-    const response = saveBook.map((book) => new ResponseBookDto(book));
+    const response = savedBook.map((book) =>
+      plainToInstance(ResponseBookDto, book),
+    );
 
     return Array.isArray(createBookDto) ? response : response[0];
   }
 
   async findAllBook(): Promise<ResponseBookDto[]> {
     const findBooks = await this.bookRepository.find();
-    return findBooks.map((book) => new ResponseBookDto(book));
+    return findBooks.map((book) => plainToInstance(ResponseBookDto, book));
   }
 
   async findOneBook(id: string): Promise<ResponseBookDto> {
     const findBook = await this.bookRepository.findOne({ where: { id } });
     if (!findBook) throw new NotFoundException(`Book with ID-${id} not found`);
 
-    return new ResponseBookDto(findBook);
+    return plainToInstance(ResponseBookDto, findBook);
   }
 
   async updateBook(
@@ -87,7 +90,8 @@ export class BookService {
     Object.assign(findBook, updateBookDto);
 
     const savedBook = await this.bookRepository.save(findBook);
-    return new ResponseBookDto(savedBook);
+
+    return plainToInstance(ResponseBookDto, savedBook);
   }
 
   async removeBook(id: string) {
