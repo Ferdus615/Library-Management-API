@@ -35,7 +35,10 @@ export class BookController {
   async createBook(
     @Body() createBookDto: CreateBookDto,
   ): Promise<ResponseBookDto | ResponseBookDto[]> {
-    return await this.bookService.createBook(createBookDto);
+    const book = await this.bookService.createBook(createBookDto);
+    return plainToInstance(ResponseBookDto, book, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get()
@@ -50,7 +53,10 @@ export class BookController {
     type: [ResponseBookDto],
   })
   async findAllBook(): Promise<ResponseBookDto[]> {
-    return await this.bookService.findAllBook();
+    const books = await this.bookService.findAllBook();
+    return plainToInstance(ResponseBookDto, books, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get(':id')
@@ -132,7 +138,10 @@ export class BookController {
     @Param('id') id: string,
     @Body() updateBookDto: UpdateBookDto,
   ): Promise<ResponseBookDto> {
-    return await this.bookService.updateBook(id, updateBookDto);
+    const book = await this.bookService.updateBook(id, updateBookDto);
+    return plainToInstance(ResponseBookDto, book, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Delete(':id')
@@ -150,7 +159,7 @@ export class BookController {
     description: 'The book record has been successfully deleted.',
   })
   @ApiResponse({ status: 404, description: 'Book not found.' })
-  removeBook(@Param('id') id: string) {
-    return this.bookService.removeBook(id);
+  async removeBook(@Param('id') id: string) {
+    return await this.bookService.removeBook(id);
   }
 }
