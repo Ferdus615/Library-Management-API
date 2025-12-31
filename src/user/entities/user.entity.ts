@@ -1,4 +1,9 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -32,9 +37,9 @@ export class User {
   @Column({ default: true })
   is_active: boolean;
 
-  @Column({ type: 'date', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
-  @Column({ type: 'date', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
 }

@@ -15,7 +15,7 @@ export class FineCron {
     @InjectRepository(Fine) private readonly fineRepository: Repository<Fine>,
   ) {}
 
-  @Cron('0 0,12 * * *')
+  @Cron('0 * * * *')
   async AutoGenerateFines() {
     this.logger.log('Running 12-hour fine accural job....');
 

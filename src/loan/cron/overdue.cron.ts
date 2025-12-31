@@ -13,7 +13,7 @@ export class OverdueLoanCron {
     @InjectRepository(Loan) private readonly loanRespository: Repository<Loan>,
   ) {}
 
-  @Cron(CronExpression.EVERY_12_HOURS)
+  @Cron(CronExpression.EVERY_HOUR)
   async AutoMarkOverdueLoan() {
     const today = new Date();
 
