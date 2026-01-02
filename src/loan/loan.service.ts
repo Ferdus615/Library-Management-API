@@ -34,7 +34,9 @@ export class LoanService {
     if (!findBook) throw new NotFoundException(`Book not found`);
 
     if (findBook.available_copies <= 0) {
-      throw new BadRequestException(`Book is not available!`);
+      throw new BadRequestException(
+        `Book is not available! Please rserve to get it when available.`,
+      );
     }
 
     findBook.available_copies -= 1;

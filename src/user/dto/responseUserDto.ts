@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
+import { MemberStatus } from '../enum/member.enum';
 
 export class ResponseUserDto {
   @ApiProperty({
@@ -36,7 +37,7 @@ export class ResponseUserDto {
     example: 'admin',
   })
   @Expose()
-  role: string;
+  role: MemberStatus;
 
   @ApiProperty({
     description: 'Indicates if the user account is currently active.',
