@@ -10,7 +10,6 @@ import { Repository } from 'typeorm';
 import { Reservation } from './entities/reservation.entity';
 import { CreateReservationDto } from './dto/createReservationDto.dto';
 import { ResponseReservationDto } from './dto/rseponseReservationDto.dto';
-import { find } from 'rxjs';
 import { ReservationStatus } from './enum/reservation.enum';
 import { plainToInstance } from 'class-transformer';
 
@@ -52,5 +51,33 @@ export class ReservationService {
     const savedReservation = await this.reservationRepository.save(reservation);
 
     return plainToInstance(ResponseReservationDto, savedReservation);
+  }
+
+  async findAllReservatios(): Promise<ResponseReservationDto[]> {
+    const findReservations = await this.reservationRepository.find();
+
+    return plainToInstance(ResponseReservationDto, findReservations);
+  }
+
+  async findOneReservation(id: string): Promise<ResponseReservationDto> {
+    const findReservation = await this.reservationRepository.findOne({
+      where: { id },
+    });
+    if (!findReservation) throw new NotFoundException(`Reservation not found!`);
+
+    return plainToInstance(ResponseReservationDto, findReservation);
+  }
+
+  async cancleReservation(id: string): Promise<ResponseReservationDto> {
+    const findReservation = await this.reservationRepository.findOne({
+      where: { id },
+    });
+    if (!findReservation) throw new NotFoundException(`Reservation not found!`);
+
+    findReservation.status = ReservationStatus.CANCELLED;
+    const cancleReservation =
+      await this.reservationRepository.save(findReservation);
+
+    return plainToInstance(ResponseReservationDto, cancleReservation);
   }
 }
