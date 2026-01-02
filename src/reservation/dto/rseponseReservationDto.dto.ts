@@ -1,18 +1,29 @@
-import { IsUUID } from 'class-validator';
+import { Expose, Type } from 'class-transformer';
+import { ReservationUserResponseDto } from './reservationUserResponseDto.dto';
+import { ReservationBookResponseDto } from './reservationBookResponseDto.dto';
+import { ReservationStatus } from '../enum/reservation.enum';
 
 export class ResponseReservationDto {
-  @IsUUID()
+  @Expose()
   id: string;
 
-  status: string;
+  @Expose()
+  status: ReservationStatus;
 
-  user: string;
+  @Expose()
+  @Type(() => ReservationUserResponseDto)
+  user: ReservationUserResponseDto;
 
-  book: string;
+  @Expose()
+  @Type(() => ReservationBookResponseDto)
+  book: ReservationBookResponseDto;
 
+  @Expose()
   ready_at: Date;
 
+  @Expose()
   expires_at: Date;
 
+  @Expose()
   created_at: Date;
 }
