@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ReservationService } from './reservation.service';
 import { CreateReservationDto } from './dto/createReservationDto.dto';
 import { ResponseReservationDto } from './dto/rseponseReservationDto.dto';
@@ -16,5 +16,15 @@ export class ReservationController {
     return plainToInstance(ResponseReservationDto, reservation, {
       excludeExtraneousValues: true,
     });
+  }
+
+  @Get()
+  async findAllReservatios(): Promise<ResponseReservationDto[]> {
+    const reservations = await this.reservationService.findAllReservatios();
+    return reservations.map((res) =>
+      plainToInstance(ResponseReservationDto, res, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 }
