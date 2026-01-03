@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ReservationService } from './reservation.service';
 import { CreateReservationDto } from './dto/createReservationDto.dto';
 import { ResponseReservationDto } from './dto/rseponseReservationDto.dto';
 import { plainToInstance } from 'class-transformer';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('reservation')
 export class ReservationController {
@@ -33,6 +34,27 @@ export class ReservationController {
     @Param('id') id: string,
   ): Promise<ResponseReservationDto> {
     const reservation = await this.reservationService.findOneReservation(id);
+    return plainToInstance(ResponseReservationDto, reservation, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Patch(':id')
+  @ApiOperation({
+    summary: 'Cancel a reservation',
+    description: 'Updates the reservation status to CANCELLED.',
+  })
+  @ApiParam({ name: 'id', description: 'Reservation UUID', format: 'uuid' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reservation cancelled.',
+    type: ResponseReservationDto,
+  })
+  @ApiResponse({ status: 404, description: 'Reservation not found.' })
+  async cancleReservation(
+    @Param('id') id: string,
+  ): Promise<ResponseReservationDto> {
+    const reservation = await this.reservationService.cancleReservation(id);
     return plainToInstance(ResponseReservationDto, reservation, {
       excludeExtraneousValues: true,
     });
