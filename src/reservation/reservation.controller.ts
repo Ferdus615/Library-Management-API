@@ -1,15 +1,43 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ReservationService } from './reservation.service';
 import { CreateReservationDto } from './dto/createReservationDto.dto';
 import { ResponseReservationDto } from './dto/rseponseReservationDto.dto';
 import { plainToInstance } from 'class-transformer';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
 @Controller('reservation')
 export class ReservationController {
   constructor(private readonly reservationService: ReservationService) {}
 
   @Post()
+  @ApiOperation({
+    summary: 'Create a new book reservation',
+    description:
+      'Places a user in the waitlist for a book. Fails if the book is currently available for direct loan.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Reservation successfully created.',
+    type: ResponseReservationDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Book is available for direct loan.',
+  })
+  @ApiResponse({ status: 404, description: 'User or Book not found.' })
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  @HttpCode(HttpStatus.CREATED)
   async createReservation(
     @Body() dto: CreateReservationDto,
   ): Promise<ResponseReservationDto> {
@@ -20,6 +48,11 @@ export class ReservationController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'Get all reservations',
+    description: 'Returns a complete list of all reservations in the system.',
+  })
+  @ApiResponse({ status: 200, type: [ResponseReservationDto] })
   async findAllReservatios(): Promise<ResponseReservationDto[]> {
     const reservations = await this.reservationService.findAllReservatios();
     return reservations.map((res) =>
@@ -30,6 +63,10 @@ export class ReservationController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get reservation details by ID' })
+  @ApiParam({ name: 'id', description: 'Reservation UUID', format: 'uuid' })
+  @ApiResponse({ status: 200, type: ResponseReservationDto })
+  @ApiResponse({ status: 404, description: 'Reservation not found.' })
   async findOneReservation(
     @Param('id') id: string,
   ): Promise<ResponseReservationDto> {
