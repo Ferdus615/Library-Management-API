@@ -31,13 +31,17 @@ export class CategoryController {
   @Get()
   async findAll(): Promise<ResponseCategoryDto[]> {
     const categories = await this.categoryService.findAllCategory();
-    return plainToInstance(ResponseCategoryDto, categories);
+    return plainToInstance(ResponseCategoryDto, categories, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<ResponseCategoryDto> {
     const category = await this.categoryService.findOneCategory(id);
-    return plainToInstance(ResponseCategoryDto, category);
+    return plainToInstance(ResponseCategoryDto, category, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Patch(':id')
@@ -46,7 +50,9 @@ export class CategoryController {
     @Body() dto: UpdateCategoryDto,
   ): Promise<ResponseCategoryDto> {
     const category = await this.categoryService.updateCategory(id, dto);
-    return plainToInstance(ResponseCategoryDto, category);
+    return plainToInstance(ResponseCategoryDto, category, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Delete(':id')

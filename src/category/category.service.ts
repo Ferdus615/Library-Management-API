@@ -48,13 +48,15 @@ export class CategoryService {
     return plainToInstance(ResponseCategoryDto, findCategory);
   }
 
-  // async updateCategory(
-  //   id: string,
-  //   dto: UpdateCategoryDto,
-  // ): Promise<ResponseCategoryDto> {
-  //   const category = await this.categoryRepository.findOne({ where: { id } });
-  //   if (!category) throw new NotFoundException(`Category not found!`);
-  // }
+  async updateCategory(
+    id: string,
+    dto: UpdateCategoryDto,
+  ): Promise<ResponseCategoryDto> {
+    const category = await this.categoryRepository.findOne({ where: { id } });
+    if (!category) throw new NotFoundException(`Category not found!`);
+
+    return plainToInstance(ResponseCategoryDto, category);
+  }
 
   async remove(id: string): Promise<{ message: string }> {
     const exist = await this.categoryRepository.findOne({ where: { id } });
