@@ -1,6 +1,14 @@
+import { Category } from 'src/category/entities/category.entity';
 import { Loan } from 'src/loan/entities/loan.entity';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('books')
 export class Book {
@@ -18,6 +26,13 @@ export class Book {
 
   @Column({ type: 'int' })
   publication_year: number;
+
+  @ManyToOne(() => Category, (category) => category.books, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'category_id' })
+  category: Category;
 
   @Column({ type: 'int', default: 1 })
   total_copies: number;

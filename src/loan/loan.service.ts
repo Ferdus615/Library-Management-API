@@ -60,7 +60,7 @@ export class LoanService {
 
   async findAllLoan(): Promise<ResponseLoanDto[]> {
     const findLoans = await this.loanRepository.find();
-    return plainToInstance(ResponseLoanDto, findLoans);
+    return findLoans.map((loan) => plainToInstance(ResponseLoanDto, loan));
   }
 
   async findOneLoan(id: string): Promise<ResponseLoanDto> {

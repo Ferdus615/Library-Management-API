@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Book } from '../entities/book.entity';
 import { IsInt, IsString } from 'class-validator';
+import { Expose } from 'class-transformer';
 
 export class ResponseBookDto {
   @ApiProperty({
@@ -8,6 +8,7 @@ export class ResponseBookDto {
     example: 'a1b2c3d4-e5f6-7890-abcd-ef0123456789',
     format: 'uuid', // Suggests the format in Swagger UI
   })
+  @Expose()
   @IsString()
   id: string;
 
@@ -16,6 +17,7 @@ export class ResponseBookDto {
     example: '9780743273565',
     maxLength: 13,
   })
+  @Expose()
   @IsString()
   isbn: string;
 
@@ -24,6 +26,7 @@ export class ResponseBookDto {
     example: 'The Great Gatsby',
     maxLength: 150,
   })
+  @Expose()
   @IsString()
   title: string;
 
@@ -32,6 +35,7 @@ export class ResponseBookDto {
     example: 'F. Scott Fitzgerald',
     maxLength: 100,
   })
+  @Expose()
   @IsString()
   author: string;
 
@@ -40,6 +44,7 @@ export class ResponseBookDto {
     example: 1925,
     type: Number,
   })
+  @Expose()
   @IsInt()
   publication_year: number;
 
@@ -48,6 +53,7 @@ export class ResponseBookDto {
     example: 20,
     type: Number,
   })
+  @Expose()
   @IsInt()
   total_copies: number;
 
@@ -56,6 +62,7 @@ export class ResponseBookDto {
     example: 2,
     type: Number,
   })
+  @Expose()
   @IsInt()
   damaged_copies: number;
 
@@ -65,17 +72,7 @@ export class ResponseBookDto {
     example: 18,
     type: Number,
   })
+  @Expose()
   @IsInt()
   available_copies: number;
-
-  constructor(book: Book) {
-    this.id = book.id;
-    this.isbn = book.isbn;
-    this.title = book.title;
-    this.author = book.author;
-    this.publication_year = book.publication_year;
-    this.total_copies = book.total_copies;
-    this.damaged_copies = book.damaged_copies;
-    this.available_copies = book.available_copies;
-  }
 }

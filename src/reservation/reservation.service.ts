@@ -56,7 +56,9 @@ export class ReservationService {
   async findAllReservatios(): Promise<ResponseReservationDto[]> {
     const findReservations = await this.reservationRepository.find();
 
-    return plainToInstance(ResponseReservationDto, findReservations);
+    return findReservations.map((reservation) =>
+      plainToInstance(ResponseReservationDto, reservation),
+    );
   }
 
   async findOneReservation(id: string): Promise<ResponseReservationDto> {
