@@ -22,7 +22,9 @@ export class CategoryController {
     @Body() createCategoryDto: CreateCategoryDto,
   ): Promise<ResponseCategoryDto> {
     const category = await this.categoryService.create(createCategoryDto);
-    return plainToInstance(ResponseCategoryDto, category);
+    return plainToInstance(ResponseCategoryDto, category, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get()
@@ -32,8 +34,8 @@ export class CategoryController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.categoryService.findOne(+id);
+  findOne(@Param('id') id: string): Promise<ResponseCategoryDto> {
+    const category = await this.categoryService.findOne(id);
   }
 
   // @Patch(':id')
