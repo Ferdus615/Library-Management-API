@@ -21,7 +21,8 @@ export class CategoryController {
   async create(
     @Body() createCategoryDto: CreateCategoryDto,
   ): Promise<ResponseCategoryDto> {
-    const category = await this.categoryService.create(createCategoryDto);
+    const category =
+      await this.categoryService.createCategory(createCategoryDto);
     return plainToInstance(ResponseCategoryDto, category, {
       excludeExtraneousValues: true,
     });
@@ -29,23 +30,24 @@ export class CategoryController {
 
   @Get()
   async findAll(): Promise<ResponseCategoryDto[]> {
-    const categories = await this.categoryService.findAll();
+    const categories = await this.categoryService.findAllCategory();
     return plainToInstance(ResponseCategoryDto, categories);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<ResponseCategoryDto> {
-    const category = await this.categoryService.findOne(id);
+    const category = await this.categoryService.findOneCategory(id);
     return plainToInstance(ResponseCategoryDto, category);
   }
 
-  // @Patch(':id')
-  // update(
-  //   @Param('id') id: string,
-  //   @Body() updateCategoryDto: UpdateCategoryDto,
-  // ) {
-  //   return this.categoryService.update(+id, updateCategoryDto);
-  // }
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateCategoryDto,
+  ): Promise<ResponseCategoryDto> {
+    const category = await this.categoryService.updateCategory(id, dto);
+    return plainToInstance(ResponseCategoryDto, category);
+  }
 
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<{ message: string }> {

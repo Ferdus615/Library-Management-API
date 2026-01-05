@@ -18,7 +18,7 @@ export class CategoryService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
-  async create(dto: CreateCategoryDto): Promise<ResponseCategoryDto> {
+  async createCategory(dto: CreateCategoryDto): Promise<ResponseCategoryDto> {
     const exist = await this.categoryRepository.findOne({
       where: { name: dto.name },
     });
@@ -31,7 +31,7 @@ export class CategoryService {
     return plainToInstance(ResponseCategoryDto, saved);
   }
 
-  async findAll(): Promise<ResponseCategoryDto[]> {
+  async findAllCategory(): Promise<ResponseCategoryDto[]> {
     const findCategories = await this.categoryRepository.find();
 
     return findCategories.map((category) =>
@@ -39,7 +39,7 @@ export class CategoryService {
     );
   }
 
-  async findOne(id: string): Promise<ResponseCategoryDto> {
+  async findOneCategory(id: string): Promise<ResponseCategoryDto> {
     const findCategory = await this.categoryRepository.findOne({
       where: { id },
     });
@@ -48,7 +48,7 @@ export class CategoryService {
     return plainToInstance(ResponseCategoryDto, findCategory);
   }
 
-  // async update(
+  // async updateCategory(
   //   id: string,
   //   dto: UpdateCategoryDto,
   // ): Promise<ResponseCategoryDto> {
