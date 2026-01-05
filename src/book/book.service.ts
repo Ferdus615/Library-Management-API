@@ -35,9 +35,9 @@ export class BookService {
       }),
     );
 
-    const saveBook = await this.bookRepository.save(addBook);
+    const savedBook = await this.bookRepository.save(addBook);
 
-    const response = saveBook.map((book) => new ResponseBookDto(book));
+    const response = savedBook.map((book) => new ResponseBookDto(book));
 
     return Array.isArray(createBookDto) ? response : response[0];
   }
@@ -86,8 +86,8 @@ export class BookService {
 
     Object.assign(book, updateBookDto);
 
-    const saveBook = await this.bookRepository.save(book);
-    return new ResponseBookDto(saveBook);
+    const savedBook = await this.bookRepository.save(book);
+    return new ResponseBookDto(savedBook);
   }
 
   async removeBook(id: string) {
