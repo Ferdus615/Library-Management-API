@@ -10,36 +10,39 @@ import {
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/createCategoryDto.dto';
 import { UpdateCategoryDto } from './dto/updateCategoryDto.dto';
+import { plainToInstance } from 'class-transformer';
+import { ResponseCategoryDto } from './dto/responseCategoryDto.dto';
 
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoryService.create(createCategoryDto);
+  async create(
+    @Body() createCategoryDto: CreateCategoryDto,
+  ): Promise<ResponseCategoryDto> {
+    const category = await this.categoryService.create(createCategoryDto);
+    return plainToInstance(ResponseCategoryDto, category);
   }
 
   @Get()
-  findAll() {
-    return this.categoryService.findAll();
-  }
+  async findAll() {}
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.categoryService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateCategoryDto: UpdateCategoryDto,
-  ) {
-    return this.categoryService.update(+id, updateCategoryDto);
-  }
+  // @Patch(':id')
+  // update(
+  //   @Param('id') id: string,
+  //   @Body() updateCategoryDto: UpdateCategoryDto,
+  // ) {
+  //   return this.categoryService.update(+id, updateCategoryDto);
+  // }
 
   @Delete(':id')
-  async await remove(@Param('id') id: string) {
-    return this.categoryService.remove(+id);
+  async remove(@Param('id') id: string): Promise<{ message: string }> {
+    return await this.categoryService.remove(id);
   }
 }
