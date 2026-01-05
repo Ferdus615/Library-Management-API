@@ -34,8 +34,9 @@ export class CategoryController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<ResponseCategoryDto> {
+  async findOne(@Param('id') id: string): Promise<ResponseCategoryDto> {
     const category = await this.categoryService.findOne(id);
+    return plainToInstance(ResponseCategoryDto, category);
   }
 
   // @Patch(':id')
