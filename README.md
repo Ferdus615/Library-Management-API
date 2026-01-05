@@ -1,3 +1,19 @@
+## Modules List
+```
+
+1️⃣ Books  
+2️⃣ Members  
+3️⃣ Loans (Borrow)  
+4️⃣ Returns  
+5️⃣ Fines  
+6️⃣ Categories  
+7️⃣ Reservations  
+8️⃣ Authentication + Roles  
+9️⃣ Reports / Dashboard analytics  
+
+```
+
+
 ```bash
 src/
 │
