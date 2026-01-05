@@ -12,8 +12,10 @@ import { BookService } from './book.service';
 import { CreateBookDto } from './dto/createBookDto.dto';
 import { UpdateBookDto } from './dto/updateBookDto.dto';
 import { ResponseBookDto } from './dto/responseBookDto.dto';
+import { plainToInstance } from 'class-transformer';
+import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 
-@ApiTags('book')
+@ApiTags('books')
 @Controller('book')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
@@ -33,7 +35,10 @@ export class BookController {
   async createBook(
     @Body() createBookDto: CreateBookDto,
   ): Promise<ResponseBookDto | ResponseBookDto[]> {
-    return await this.bookService.createBook(createBookDto);
+    const book = await this.bookService.createBook(createBookDto);
+    return plainToInstance(ResponseBookDto, book, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get()
@@ -48,7 +53,10 @@ export class BookController {
     type: [ResponseBookDto],
   })
   async findAllBook(): Promise<ResponseBookDto[]> {
-    return await this.bookService.findAllBook();
+    const books = await this.bookService.findAllBook();
+    return plainToInstance(ResponseBookDto, books, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get(':id')
@@ -73,7 +81,39 @@ export class BookController {
     description: 'No book found with the provided ID.',
   })
   async findOneBook(@Param('id') id: string): Promise<ResponseBookDto> {
-    return await this.bookService.findOneBook(id);
+    const book = await this.bookService.findOneBook(id);
+    return plainToInstance(ResponseBookDto, book, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Get('loans/:id')
+  @ApiOperation({
+    summary: 'Retrieve loan history for a specific book',
+    description:
+      'Returns a list of all historical and active loans associated with a specific book ID, including member details.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'The unique UUID of the book',
+    format: 'uuid',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef0123456789',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved the loan history.',
+    type: [ResponseLoanDto],
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Book not found.',
+  })
+  async findBookLoans(@Param('id') id: string): Promise<ResponseLoanDto[]> {
+    const loans = await this.bookService.findBookLoans(id);
+
+    return plainToInstance(ResponseLoanDto, loans, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Patch(':id')
@@ -98,7 +138,10 @@ export class BookController {
     @Param('id') id: string,
     @Body() updateBookDto: UpdateBookDto,
   ): Promise<ResponseBookDto> {
-    return await this.bookService.updateBook(id, updateBookDto);
+    const book = await this.bookService.updateBook(id, updateBookDto);
+    return plainToInstance(ResponseBookDto, book, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Delete(':id')
@@ -116,7 +159,7 @@ export class BookController {
     description: 'The book record has been successfully deleted.',
   })
   @ApiResponse({ status: 404, description: 'Book not found.' })
-  removeBook(@Param('id') id: string) {
-    return this.bookService.removeBook(id);
+  async removeBook(@Param('id') id: string) {
+    return await this.bookService.removeBook(id);
   }
 }

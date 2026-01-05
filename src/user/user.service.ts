@@ -6,12 +6,18 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/createUserDto.dto';
 import { ResponseUserDto } from './dto/responseUserDto';
 import { UpdateUserDto } from './dto/updateUserDto.dto';
+import { plainToInstance } from 'class-transformer';
+import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
+import { Loan } from 'src/loan/entities/loan.entity';
+import { Reservation } from 'src/reservation/entities/reservation.entity';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
+    @InjectRepository(Reservation)
+    private readonly reservationRepository: Repository<Reservation>,
   ) {}
 
   async createUser(dto: CreateUserDto): Promise<ResponseUserDto> {
@@ -23,19 +29,19 @@ export class UserService {
     });
 
     const savedUser = await this.userRepository.save(findUser);
-    return new ResponseUserDto(savedUser);
+    return plainToInstance(ResponseUserDto, savedUser);
   }
 
   async findAllUser(): Promise<ResponseUserDto[]> {
     const findUsers = await this.userRepository.find();
-    return findUsers.map((user) => new ResponseUserDto(user));
+    return findUsers.map((user) => plainToInstance(ResponseUserDto, user));
   }
 
   async findOneUser(id: string): Promise<ResponseUserDto> {
     const findUser = await this.userRepository.findOne({ where: { id } });
     if (!findUser) throw new NotFoundException(`User with id:${id} not found!`);
 
-    return new ResponseUserDto(findUser);
+    return plainToInstance(ResponseUserDto, findUser);
   }
 
   async findByEmail(email: string): Promise<ResponseUserDto> {
@@ -44,7 +50,7 @@ export class UserService {
       throw new NotFoundException(`User with email:${email} not found!`);
     }
 
-    return new ResponseUserDto(findUser);
+    return plainToInstance(ResponseUserDto, findUser);
   }
 
   async findByName(name: string): Promise<ResponseUserDto[]> {
@@ -61,14 +67,27 @@ export class UserService {
       throw new NotFoundException(`User not found!`);
     }
 
-    return findUsers.map((user) => new ResponseUserDto(user));
+    return findUsers.map((user) => plainToInstance(ResponseUserDto, user));
   }
 
   async findByPhone(phone: string): Promise<ResponseUserDto> {
     const findUser = await this.userRepository.findOne({ where: { phone } });
     if (!findUser) throw new NotFoundException(`User not found!`);
 
-    return new ResponseUserDto(findUser);
+    return plainToInstance(ResponseUserDto, findUser);
+  }
+
+  async findUserLoan(id: string): Promise<ResponseLoanDto[]> {
+    const findUser = await this.userRepository.findOne({ where: { id } });
+    if (!findUser) throw new NotFoundException(`User with od:${id} not found!`);
+
+    const findLoans = await this.loanRepository.find({
+      where: { user: { id } },
+      relations: ['book'],
+      order: { issue_date: 'DESC' },
+    });
+
+    return plainToInstance(ResponseLoanDto, findLoans);
   }
 
   async updateUser(id: string, dto: UpdateUserDto): Promise<ResponseUserDto> {
@@ -81,7 +100,7 @@ export class UserService {
 
     Object.assign(findUser, dto);
     const result = await this.userRepository.save(findUser);
-    return new ResponseUserDto(result);
+    return plainToInstance(ResponseUserDto, result);
   }
 
   async removeUser(id: string) {

@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Loan } from 'src/loan/entities/loan.entity';
+import { Reservation } from 'src/reservation/entities/reservation.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('books')
 export class Book {
@@ -26,9 +28,15 @@ export class Book {
   @Column({ type: 'int', default: 1 })
   available_copies: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @OneToMany(() => Loan, (loan) => loan.book)
+  loans: Loan[];
+
+  @OneToMany(() => Reservation, (reservation) => reservation.book)
+  reservations: Reservation[];
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date;
 }

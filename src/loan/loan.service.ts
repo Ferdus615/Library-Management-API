@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Loan } from './entities/loan.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -26,7 +26,7 @@ export class LoanService {
     const findUser = await this.userRepository.findOne({
       where: { id: dto.user_id },
     });
-    if (!findUser) throw new NotFoundException(`User not `);
+    if (!findUser) throw new NotFoundException(`User not found!`);
 
     const findBook = await this.bookRepository.findOne({
       where: { id: dto.book_id },
@@ -34,7 +34,9 @@ export class LoanService {
     if (!findBook) throw new NotFoundException(`Book not found`);
 
     if (findBook.available_copies <= 0) {
-      throw new BadRequestException(`Book is not available!`);
+      throw new BadRequestException(
+        `Book is not available! Please rserve to get it when available.`,
+      );
     }
 
     findBook.available_copies -= 1;
@@ -43,7 +45,7 @@ export class LoanService {
     const loan = this.loanRepository.create({
       user: findUser,
       book: findBook,
-      issue_date: dto.issue_date,
+      issue_date: new Date(),
       due_date: dto.due_date,
     });
 
@@ -97,25 +99,5 @@ export class LoanService {
 
     await this.loanRepository.remove(updatedLoan);
     return { message: `Loan record deleted successfully!` };
-  }
-
-  // -------------------------------------
-  // AUTO MARK OVERDUE (cron job)
-  // -------------------------------------
-
-  async autoMarkOverDue() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const overdueLoans = await this.loanRepository.find({
-      where: { status: LoanStatus.ISSUED, due_date: LessThan(today) },
-    });
-
-    for (const loan of overdueLoans) {
-      loan.status = LoanStatus.OVERDUE;
-      await this.loanRepository.save(loan);
-    }
-
-    return overdueLoans.length;
   }
 }

@@ -5,10 +5,11 @@ import { Loan } from './entities/loan.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Book } from 'src/book/entities/book.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { OverdueLoanCron } from './cron/overdue.cron';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Loan, User, Book])],
   controllers: [LoanController],
-  providers: [LoanService],
+  providers: [LoanService, OverdueLoanCron],
 })
 export class LoanModule {}

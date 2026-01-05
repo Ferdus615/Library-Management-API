@@ -15,7 +15,7 @@ export class FineCron {
     @InjectRepository(Fine) private readonly fineRepository: Repository<Fine>,
   ) {}
 
-  @Cron('0 0,12 * * *')
+  @Cron('0 * * * *')
   async AutoGenerateFines() {
     this.logger.log('Running 12-hour fine accural job....');
 
@@ -28,7 +28,9 @@ export class FineCron {
       .andWhere('loan.return_date IS NULL')
       .getMany();
 
-    this.logger.log(`Found ${overdueLoans.length} active overdue loans.`);
+    this.logger.log(
+      `${now.toISOString()}: Found ${overdueLoans.length} active overdue loans.`,
+    );
 
     for (const loan of overdueLoans) {
       const due = new Date(loan.due_date);

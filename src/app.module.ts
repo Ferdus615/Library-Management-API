@@ -9,6 +9,7 @@ import { UserModule } from './user/user.module';
 import { LoanModule } from './loan/loan.module';
 import { FineModule } from './fine/fine.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ReservationModule } from './reservation/reservation.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     UserModule,
     LoanModule,
     FineModule,
+    ReservationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
