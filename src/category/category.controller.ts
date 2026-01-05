@@ -26,7 +26,10 @@ export class CategoryController {
   }
 
   @Get()
-  async findAll() {}
+  async findAll(): Promise<ResponseCategoryDto[]> {
+    const categories = await this.categoryService.findAll();
+    return plainToInstance(ResponseCategoryDto, categories);
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
