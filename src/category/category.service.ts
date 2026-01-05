@@ -55,7 +55,16 @@ export class CategoryService {
     const category = await this.categoryRepository.findOne({ where: { id } });
     if (!category) throw new NotFoundException(`Category not found!`);
 
-    return plainToInstance(ResponseCategoryDto, category);
+    if (dto.name !== undefined) {
+      category.name = dto.name;
+    }
+
+    if (dto.description !== undefined) {
+      category.description = dto.description;
+    }
+
+    const saved = await this.categoryRepository.save(category);
+    return plainToInstance(ResponseCategoryDto, saved);
   }
 
   async remove(id: string): Promise<{ message: string }> {
