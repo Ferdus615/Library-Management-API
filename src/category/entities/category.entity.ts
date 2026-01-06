@@ -29,4 +29,13 @@ export class Category {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
+
+  // ==== normanlize hook ====
+  @BeforeInsert()
+  @BeforeUpdate()
+  normalizeName() {
+    if (this.name) {
+      this.name = this.name.trim().toLowerCase();
+    }
+  }
 }
