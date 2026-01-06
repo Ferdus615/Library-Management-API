@@ -46,6 +46,22 @@ export class CategoryController {
   }
 
   @Post('/bulk')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Bulk create categories',
+    description:
+      'Creates multiple categories in a single transaction. Validates against duplicates in the request and existing entries in the database.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'All categories created successfully.',
+    type: [ResponseCategoryDto],
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Validation failed: Duplicates found or category already exists.',
+  })
   async createCategories(
     @Body() dto: BulkCategoriesDto,
   ): Promise<ResponseCategoryDto[]> {
