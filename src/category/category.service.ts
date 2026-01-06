@@ -7,9 +7,10 @@ import { CreateCategoryDto } from './dto/createCategoryDto.dto';
 import { UpdateCategoryDto } from './dto/updateCategoryDto.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { ResponseCategoryDto } from './dto/responseCategoryDto.dto';
+import { BulkCategoriesDto } from './dto/createBulkCategoryDto.dto';
 
 @Injectable()
 export class CategoryService {
@@ -30,7 +31,41 @@ export class CategoryService {
     return plainToInstance(ResponseCategoryDto, saved);
   }
 
-  // async createCategories(dtos: CreateCategoryDto);
+  async createCategories(
+    dto: BulkCategoriesDto,
+  ): Promise<ResponseCategoryDto[]> {
+    const names = dto.categories.map((category) =>
+      category.name.trim().toLowerCase(),
+    );
+
+    const duplicateNames = names.filter(
+      (name, index) => names.indexOf(name) !== index,
+    );
+    if (duplicateNames.length) {
+      throw new BadRequestException(
+        `Duplicate categories in data: ${[...new Set(duplicateNames)].join(', ')}`,
+      );
+    }
+
+    const exist = await this.categoryRepository.find({
+      where: { name: In(names) },
+    });
+    if (exist.length) {
+      throw new BadRequestException(
+        `Category alredy exists: ${exist.map((cat) => cat.name).join(', ')}`,
+      );
+    }
+
+    const categories = this.categoryRepository.create(
+      dto.categories.map((category) => ({
+        ...category,
+        name: category.name.trim(),
+      })),
+    );
+    const savedCategories = await this.categoryRepository.save(categories);
+
+    return plainToInstance(ResponseCategoryDto, savedCategories);
+  }
 
   async findAllCategory(): Promise<ResponseCategoryDto[]> {
     const findCategories = await this.categoryRepository.find();

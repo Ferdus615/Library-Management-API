@@ -1,5 +1,7 @@
 import { Book } from 'src/book/entities/book.entity';
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
