@@ -63,6 +63,8 @@ export class CategoryService {
       category.description = dto.description;
     }
 
+    // const category = this.categoryRepository.merge(category, dto);
+
     const saved = await this.categoryRepository.save(category);
     return plainToInstance(ResponseCategoryDto, saved);
   }
