@@ -29,8 +29,10 @@ export class OverdueLoanCron {
       loan.status = LoanStatus.OVERDUE;
       await this.loanRespository.save(loan);
 
+      const date = loan.due_date.toISOString();
+
       this.logger.log(
-        `Changed status of loan:${loan.id} to overdue. Due date was ${loan.due_date.toISOString()}`,
+        `Changed status of loan:${loan.id} to overdue. Due date was ${date}`,
       );
     }
   }

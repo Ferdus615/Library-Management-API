@@ -27,9 +27,10 @@ export class CategoryService {
     const category = this.categoryRepository.create(dto);
 
     const saved = await this.categoryRepository.save(category);
-
     return plainToInstance(ResponseCategoryDto, saved);
   }
+
+  // async createCategories(dtos: CreateCategoryDto);
 
   async findAllCategory(): Promise<ResponseCategoryDto[]> {
     const findCategories = await this.categoryRepository.find();
