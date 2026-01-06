@@ -17,6 +17,7 @@ import { UpdateCategoryDto } from './dto/updateCategoryDto.dto';
 import { plainToInstance } from 'class-transformer';
 import { ResponseCategoryDto } from './dto/responseCategoryDto.dto';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { BulkCategoriesDto } from './dto/createBulkCategoryDto.dto';
 
 @ApiTags('Categories')
 @Controller('category')
@@ -37,12 +38,19 @@ export class CategoryController {
   })
   @ApiResponse({ status: 400, description: 'Category name already exists.' })
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  async create(
-    @Body() createCategoryDto: CreateCategoryDto,
-  ): Promise<ResponseCategoryDto> {
-    const category =
-      await this.categoryService.createCategory(createCategoryDto);
+  async create(@Body() dto: CreateCategoryDto): Promise<ResponseCategoryDto> {
+    const category = await this.categoryService.createCategory(dto);
     return plainToInstance(ResponseCategoryDto, category, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Post('/bulk')
+  async createCategories(
+    @Body() dto: BulkCategoriesDto,
+  ): Promise<ResponseCategoryDto[]> {
+    const categories = await this.categoryService.createCategories(dto);
+    return plainToInstance(ResponseCategoryDto, categories, {
       excludeExtraneousValues: true,
     });
   }
