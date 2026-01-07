@@ -20,10 +20,10 @@ export class CategoryService {
   ) {}
 
   async createCategory(dto: CreateCategoryDto): Promise<ResponseCategoryDto> {
-    const exist = await this.categoryRepository.findOne({
+    const category = await this.categoryRepository.findOne({
       where: { name: dto.name },
     });
-    if (exist) throw new BadRequestException(`Category already exists!`);
+    if (category) throw new BadRequestException(`Category already categorys!`);
 
     const category = this.categoryRepository.create(dto);
 
@@ -47,12 +47,12 @@ export class CategoryService {
       );
     }
 
-    const exist = await this.categoryRepository.find({
+    const category = await this.categoryRepository.find({
       where: { name: In(names) },
     });
-    if (exist.length) {
+    if (category.length) {
       throw new BadRequestException(
-        `Category alredy exists: ${exist.map((cat) => cat.name).join(', ')}`,
+        `Category alredy categorys: ${category.map((cat) => cat.name).join(', ')}`,
       );
     }
 
@@ -106,12 +106,20 @@ export class CategoryService {
   }
 
   async remove(id: string): Promise<{ message: string }> {
-    const exist = await this.categoryRepository.findOne({ where: { id } });
-    if (!exist) {
-      throw new NotFoundException(`Category doesn't exist!`);
+    const category = await this.categoryRepository.findOne({
+      where: { id },
+      relations: ['books'],
+    });
+    if (!category) {
+      throw new NotFoundException(`Category doesn't category!`);
     }
 
-    await this.categoryRepository.remove(exist);
+    if (category.books.length > 0) {
+      throw new BadRequestException(
+        `Can't delete category while books are assigned!`,
+      );
+    }
+    await this.categoryRepository.remove(category);
 
     return { message: `This action removes a #${id} category` };
   }
