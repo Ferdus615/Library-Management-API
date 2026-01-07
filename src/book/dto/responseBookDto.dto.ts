@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsString } from 'class-validator';
 import { Expose } from 'class-transformer';
 
 export class ResponseBookDto {
@@ -9,7 +8,6 @@ export class ResponseBookDto {
     format: 'uuid', // Suggests the format in Swagger UI
   })
   @Expose()
-  @IsString()
   id: string;
 
   @ApiProperty({
@@ -18,7 +16,6 @@ export class ResponseBookDto {
     maxLength: 13,
   })
   @Expose()
-  @IsString()
   isbn: string;
 
   @ApiProperty({
@@ -27,7 +24,6 @@ export class ResponseBookDto {
     maxLength: 150,
   })
   @Expose()
-  @IsString()
   title: string;
 
   @ApiProperty({
@@ -36,7 +32,6 @@ export class ResponseBookDto {
     maxLength: 100,
   })
   @Expose()
-  @IsString()
   author: string;
 
   @ApiProperty({
@@ -45,7 +40,6 @@ export class ResponseBookDto {
     type: Number,
   })
   @Expose()
-  @IsInt()
   publication_year: number;
 
   @ApiProperty({
@@ -54,7 +48,6 @@ export class ResponseBookDto {
     type: Number,
   })
   @Expose()
-  @IsInt()
   total_copies: number;
 
   @ApiProperty({
@@ -63,7 +56,6 @@ export class ResponseBookDto {
     type: Number,
   })
   @Expose()
-  @IsInt()
   damaged_copies: number;
 
   @ApiProperty({
@@ -73,6 +65,12 @@ export class ResponseBookDto {
     type: Number,
   })
   @Expose()
-  @IsInt()
   available_copies: number;
+
+  @ApiProperty({
+    description: 'The UUID of the category',
+    example: 'efb2c3d4-e5f6-7890-abcd-ef0123456789',
+  })
+  @Expose()
+  category_id: string;
 }
