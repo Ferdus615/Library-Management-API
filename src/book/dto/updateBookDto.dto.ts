@@ -39,4 +39,11 @@ export class UpdateBookDto {
   })
   @IsNumber()
   damaged_copies?: number;
+
+  @ApiProperty({
+    description: 'The UUID of the category',
+    example: 'efb2c3d4-e5f6-7890-abcd-ef0123456789',
+    required: false,
+  })
+  category_id?: string;
 }

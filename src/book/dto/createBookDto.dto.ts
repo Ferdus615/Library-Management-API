@@ -2,7 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -59,4 +61,12 @@ export class CreateBookDto {
   @IsNumber()
   @Min(1)
   total_copies: number;
+
+  @ApiProperty({
+    description: 'The UUID of the category',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef0123456789',
+  })
+  @IsUUID()
+  @IsOptional()
+  category_id?: string;
 }
