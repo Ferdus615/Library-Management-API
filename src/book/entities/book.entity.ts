@@ -32,7 +32,7 @@ export class Book {
     onDelete: 'SET NULL',
     nullable: true,
   })
-  category: Category;
+  category: Category | null;
 
   @Column({ type: 'int', default: 1 })
   total_copies: number;

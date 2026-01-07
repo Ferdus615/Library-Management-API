@@ -51,20 +51,20 @@ export class BookService {
   }
 
   async findAllBook(): Promise<ResponseBookDto[]> {
-    const findBooks = await this.bookRepository.find();
-    return findBooks.map((book) => plainToInstance(ResponseBookDto, book));
+    const books = await this.bookRepository.find();
+    return books.map((book) => plainToInstance(ResponseBookDto, book));
   }
 
   async findOneBook(id: string): Promise<ResponseBookDto> {
-    const findBook = await this.bookRepository.findOne({ where: { id } });
-    if (!findBook) throw new NotFoundException(`Book with ID-${id} not found`);
+    const book = await this.bookRepository.findOne({ where: { id } });
+    if (!book) throw new NotFoundException(`Book with ID-${id} not found`);
 
-    return plainToInstance(ResponseBookDto, findBook);
+    return plainToInstance(ResponseBookDto, book);
   }
 
-  async findBookLoans(id: string): Promise<ResponseLoanDto[]> {
-    const findBook = await this.bookRepository.findOne({ where: { id } });
-    if (!findBook) throw new NotFoundException(`Book with id:${id} not found!`);
+  async bookLoans(id: string): Promise<ResponseLoanDto[]> {
+    const book = await this.bookRepository.findOne({ where: { id } });
+    if (!book) throw new NotFoundException(`Book with id:${id} not found!`);
 
     const loans = await this.loanRepository.find({
       where: { book: { id } },
@@ -76,11 +76,11 @@ export class BookService {
   }
 
   async updateBook(id: string, dto: UpdateBookDto): Promise<ResponseBookDto> {
-    const findBook = await this.bookRepository.findOne({
+    const book = await this.bookRepository.findOne({
       where: { id },
       relations: ['category'],
     });
-    if (!findBook) throw new NotFoundException(`Book with id:${id} not found!`);
+    if (!book) throw new NotFoundException(`Book with id:${id} not found!`);
 
     // ─────────────────────────
     // Handle stock updates
@@ -88,8 +88,8 @@ export class BookService {
     if (dto.copies_added !== undefined) {
       const copiesAdded = Number(dto.copies_added);
 
-      findBook.total_copies += copiesAdded;
-      findBook.available_copies += copiesAdded;
+      book.total_copies += copiesAdded;
+      book.available_copies += copiesAdded;
 
       delete dto.copies_added;
     }
@@ -97,12 +97,12 @@ export class BookService {
     if (dto.damaged_copies !== undefined) {
       const newDamagedCopies = Number(dto.damaged_copies);
 
-      findBook.damaged_copies += newDamagedCopies;
+      book.damaged_copies += newDamagedCopies;
 
-      findBook.available_copies -= newDamagedCopies;
+      book.available_copies -= newDamagedCopies;
 
-      if (findBook.available_copies < 0) {
-        findBook.available_copies = 0;
+      if (book.available_copies < 0) {
+        book.available_copies = 0;
       }
 
       delete dto.damaged_copies;
@@ -113,7 +113,7 @@ export class BookService {
     // ─────────────────────────
     if (dto.category_id !== undefined) {
       if (dto.category_id === null) {
-        findBook.category = null;
+        book.category = null;
       } else {
         const category = await this.categoryRepository.findOne({
           where: { id: dto.category_id },
@@ -121,22 +121,32 @@ export class BookService {
 
         if (!category) throw new NotFoundException(`Category not found!`);
 
-        findBook.category = category;
+        book.category = category;
       }
     }
 
-    Object.assign(findBook, dto); // refactor to use domain specific validation
+    // ─────────────────────────
+    // Handle scalar updates
+    // ─────────────────────────
 
-    const savedBook = await this.bookRepository.save(findBook);
+    // Object.assign(book, dto); // refactor to use domain specific validation
+    if (dto.title !== undefined) {
+      book.title = dto.title;
+    }
 
+    if (dto.author !== undefined) {
+      book.author = dto.author;
+    }
+
+    const savedBook = await this.bookRepository.save(book);
     return plainToInstance(ResponseBookDto, savedBook);
   }
 
   async removeBook(id: string) {
-    const findBook = await this.bookRepository.findOne({ where: { id } });
-    if (!findBook) throw new NotFoundException(`Book with id:${id} not found!`);
+    const book = await this.bookRepository.findOne({ where: { id } });
+    if (!book) throw new NotFoundException(`Book with id:${id} not found!`);
 
-    await this.bookRepository.remove(findBook);
+    await this.bookRepository.remove(book);
     return { message: `Book with id:${id} has been removed successfully!` };
   }
 }
