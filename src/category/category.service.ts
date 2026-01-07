@@ -20,10 +20,10 @@ export class CategoryService {
   ) {}
 
   async createCategory(dto: CreateCategoryDto): Promise<ResponseCategoryDto> {
-    const category = await this.categoryRepository.findOne({
+    const exist = await this.categoryRepository.findOne({
       where: { name: dto.name },
     });
-    if (category) throw new BadRequestException(`Category already categorys!`);
+    if (exist) throw new BadRequestException(`Category already categorys!`);
 
     const category = this.categoryRepository.create(dto);
 
