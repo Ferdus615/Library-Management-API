@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
+import { ResponseBookCategoryDto } from './responseCategoryBookDto.dto';
 
 export class ResponseBookDto {
   @ApiProperty({
@@ -67,10 +68,6 @@ export class ResponseBookDto {
   @Expose()
   available_copies: number;
 
-  @ApiProperty({
-    description: 'The UUID of the category',
-    example: 'efb2c3d4-e5f6-7890-abcd-ef0123456789',
-  })
   @Expose()
-  category_id: string;
+  category?: ResponseBookCategoryDto;
 }

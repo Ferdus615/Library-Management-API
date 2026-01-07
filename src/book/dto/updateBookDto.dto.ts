@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  MaxLength,
+  IsOptional,
+  IsUUID,
+} from 'class-validator';
 export class UpdateBookDto {
   @ApiProperty({
     description: 'The new title of the book.',
@@ -9,6 +15,7 @@ export class UpdateBookDto {
   })
   @IsString()
   @MaxLength(150)
+  @IsOptional()
   title?: string;
 
   @ApiProperty({
@@ -19,6 +26,7 @@ export class UpdateBookDto {
   })
   @IsString()
   @MaxLength(100)
+  @IsOptional()
   author?: string;
 
   @ApiProperty({
@@ -28,6 +36,7 @@ export class UpdateBookDto {
     required: false, // Indicates the field is optional
   })
   @IsNumber()
+  @IsOptional()
   copies_added?: number;
 
   @ApiProperty({
@@ -38,12 +47,15 @@ export class UpdateBookDto {
     required: false, // Indicates the field is optional
   })
   @IsNumber()
+  @IsOptional()
   damaged_copies?: number;
 
   @ApiProperty({
     description: 'The UUID of the category',
-    example: 'efb2c3d4-e5f6-7890-abcd-ef0123456789',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef0123456789',
     required: false,
   })
-  category_id?: string;
+  @IsUUID()
+  @IsOptional()
+  category_id?: string | null;
 }

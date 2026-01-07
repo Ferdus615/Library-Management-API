@@ -12,12 +12,15 @@ import { UpdateBookDto } from './dto/updateBookDto.dto';
 import { ResponseBookDto } from './dto/responseBookDto.dto';
 import { Loan } from 'src/loan/entities/loan.entity';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class BookService {
   constructor(
     @InjectRepository(Book) private readonly bookRepository: Repository<Book>,
     @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
   ) {}
 
   async createBook(
@@ -72,24 +75,27 @@ export class BookService {
     return plainToInstance(ResponseLoanDto, loans);
   }
 
-  async updateBook(
-    id: string,
-    updateBookDto: UpdateBookDto,
-  ): Promise<ResponseBookDto> {
-    const findBook = await this.bookRepository.findOne({ where: { id } });
+  async updateBook(id: string, dto: UpdateBookDto): Promise<ResponseBookDto> {
+    const findBook = await this.bookRepository.findOne({
+      where: { id },
+      relations: ['category'],
+    });
     if (!findBook) throw new NotFoundException(`Book with id:${id} not found!`);
 
-    if (updateBookDto.copies_added !== undefined) {
-      const copiesAdded = Number(updateBookDto.copies_added);
+    // ─────────────────────────
+    // Handle stock updates
+    // ─────────────────────────
+    if (dto.copies_added !== undefined) {
+      const copiesAdded = Number(dto.copies_added);
 
       findBook.total_copies += copiesAdded;
       findBook.available_copies += copiesAdded;
 
-      delete updateBookDto.copies_added;
+      delete dto.copies_added;
     }
 
-    if (updateBookDto.damaged_copies !== undefined) {
-      const newDamagedCopies = Number(updateBookDto.damaged_copies);
+    if (dto.damaged_copies !== undefined) {
+      const newDamagedCopies = Number(dto.damaged_copies);
 
       findBook.damaged_copies += newDamagedCopies;
 
@@ -99,10 +105,27 @@ export class BookService {
         findBook.available_copies = 0;
       }
 
-      delete updateBookDto.damaged_copies;
+      delete dto.damaged_copies;
     }
 
-    Object.assign(findBook, updateBookDto);
+    // ─────────────────────────
+    // Handle category assignment
+    // ─────────────────────────
+    if (dto.category_id !== undefined) {
+      if (dto.category_id === null) {
+        findBook.category = null;
+      } else {
+        const category = await this.categoryRepository.findOne({
+          where: { id: dto.category_id },
+        });
+
+        if (!category) throw new NotFoundException(`Category not found!`);
+
+        findBook.category = category;
+      }
+    }
+
+    Object.assign(findBook, dto); // refactor to use domain specific validation
 
     const savedBook = await this.bookRepository.save(findBook);
 
