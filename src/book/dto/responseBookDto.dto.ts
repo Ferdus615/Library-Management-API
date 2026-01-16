@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
-import { ResponseBookCategoryDto } from './responseCategoryBookDto.dto';
+import { Expose, Type } from 'class-transformer';
+import { BookCategoryResponseDto } from './bookCategoryResponseDto.dto';
 
 export class ResponseBookDto {
   @ApiProperty({
@@ -69,5 +69,6 @@ export class ResponseBookDto {
   available_copies: number;
 
   @Expose()
-  category?: ResponseBookCategoryDto;
+  @Type(() => BookCategoryResponseDto)
+  category?: BookCategoryResponseDto;
 }

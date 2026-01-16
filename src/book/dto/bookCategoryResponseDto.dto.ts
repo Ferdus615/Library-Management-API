@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 
-export class ResponseBookCategoryDto {
+export class BookCategoryResponseDto {
   @Expose()
   id: string;
 

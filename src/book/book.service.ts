@@ -26,15 +26,25 @@ export class BookService {
   async createBook(
     createBookDto: CreateBookDto | CreateBookDto[],
   ): Promise<ResponseBookDto | ResponseBookDto[]> {
-    const arrBook = Array.isArray(createBookDto)
+    const payload = Array.isArray(createBookDto)
       ? createBookDto
       : [createBookDto];
 
-    if (arrBook.length === 0) {
+    if (payload.length === 0) {
       throw new BadRequestException(`No book data provided!`);
     }
 
-    const addBook = arrBook.map((book) =>
+    // const categoryIds = [
+    //   ...new Set(payload.map((x) => x.category_id).filter(Boolean)),
+    // ];
+
+    // const categories = categoryIds.length
+    //   ? await this.categoryRepository.find({ where: { id: In(categoryIds) } })
+    //   : [];
+
+    // const categoryMap = new Map(categories.map(category) => [category.id, category])
+
+    const addBook = payload.map((book) =>
       this.bookRepository.create({
         ...book,
         available_copies: book.total_copies,
@@ -42,7 +52,6 @@ export class BookService {
     );
 
     const savedBook = await this.bookRepository.save(addBook);
-
     const response = savedBook.map((book) =>
       plainToInstance(ResponseBookDto, book),
     );
@@ -62,7 +71,7 @@ export class BookService {
     return plainToInstance(ResponseBookDto, book);
   }
 
-  async bookLoans(id: string): Promise<ResponseLoanDto[]> {
+  async findBookLoans(id: string): Promise<ResponseLoanDto[]> {
     const book = await this.bookRepository.findOne({ where: { id } });
     if (!book) throw new NotFoundException(`Book with id:${id} not found!`);
 
