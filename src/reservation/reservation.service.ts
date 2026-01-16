@@ -82,4 +82,6 @@ export class ReservationService {
 
     return plainToInstance(ResponseReservationDto, cancleReservation);
   }
+
+  async promoteNextReservation(): Promise<void> {}
 }
