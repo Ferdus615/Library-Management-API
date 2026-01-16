@@ -68,6 +68,7 @@ export class ResponseBookDto {
   @Expose()
   available_copies: number;
 
+  @ApiProperty({ type: () => BookCategoryResponseDto })
   @Expose()
   @Type(() => BookCategoryResponseDto)
   category?: BookCategoryResponseDto;
