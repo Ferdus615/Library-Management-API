@@ -13,6 +13,7 @@ import { CreateLoanDto } from './dto/createLoanDto.dto';
 import { ResponseLoanDto } from './dto/responseLoanDto.dto';
 import { UpdateLoanDto } from './dto/updateLoanDto';
 import { LoanStatus } from './enums/loanStatus.enum';
+import { Reservation } from 'src/reservation/entities/reservation.entity';
 
 @Injectable()
 export class LoanService {
@@ -20,6 +21,8 @@ export class LoanService {
     @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Book) private readonly bookRepository: Repository<Book>,
+    @InjectRepository(Reservation)
+    private readonly reservationRepository: Repository<Reservation>,
   ) {}
 
   async createLoan(dto: CreateLoanDto): Promise<ResponseLoanDto> {

@@ -6,9 +6,10 @@ import { User } from 'src/user/entities/user.entity';
 import { Book } from 'src/book/entities/book.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OverdueLoanCron } from './cron/overdue.cron';
+import { Reservation } from 'src/reservation/entities/reservation.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Loan, User, Book])],
+  imports: [TypeOrmModule.forFeature([Loan, User, Book, Reservation])],
   controllers: [LoanController],
   providers: [LoanService, OverdueLoanCron],
 })
