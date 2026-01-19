@@ -31,6 +31,7 @@ export class Book {
   @ManyToOne(() => Category, (category) => category.books, {
     onDelete: 'SET NULL',
     nullable: true,
+    eager: true,
   })
   category: Category | null;
 

@@ -84,7 +84,7 @@ export class LoanService {
 
       const book = findLoan.book;
 
-      const nextReservation = await this.reservationRepository.find({
+      const nextReservation = await this.reservationRepository.findOne({
         where: {
           book: { id: book.id },
           status: ReservationStatus.PENDING,
@@ -94,10 +94,15 @@ export class LoanService {
 
       if (nextReservation) {
         nextReservation.status = ReservationStatus.READY;
-      }
+        nextReservation.expires_at = new Date(
+          Date.now() + 3 * 24 * 60 * 60 * 1000,
+        );
 
-      book.available_copies += 1;
-      await this.bookRepository.save(book);
+        await this.reservationRepository.save(nextReservation);
+      } else {
+        book.available_copies += 1;
+        await this.bookRepository.save(book);
+      }
     }
 
     if (dto.status && dto.status !== LoanStatus.RETURNED) {
