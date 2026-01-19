@@ -14,6 +14,7 @@ import { ResponseLoanDto } from './dto/responseLoanDto.dto';
 import { UpdateLoanDto } from './dto/updateLoanDto';
 import { LoanStatus } from './enums/loanStatus.enum';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
+import { ReservationStatus } from 'src/reservation/enum/reservation.enum';
 
 @Injectable()
 export class LoanService {
@@ -82,6 +83,19 @@ export class LoanService {
       findLoan.status = LoanStatus.RETURNED;
 
       const book = findLoan.book;
+
+      const nextReservation = await this.reservationRepository.find({
+        where: {
+          book: { id: book.id },
+          status: ReservationStatus.PENDING,
+        },
+        order: { created_at: 'ASC' },
+      });
+
+      if (nextReservation) {
+        nextReservation.status = ReservationStatus.READY;
+      }
+
       book.available_copies += 1;
       await this.bookRepository.save(book);
     }
