@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Book } from 'src/book/entities/book.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Reservation } from './entities/reservation.entity';
 import { CreateReservationDto } from './dto/createReservationDto.dto';
 import { ResponseReservationDto } from './dto/rseponseReservationDto.dto';
@@ -41,6 +41,14 @@ export class ReservationService {
       throw new BadRequestException(
         `The book is availabel! Please loan the book.`,
       );
+
+    const existing = await this.reservationRepository.findOne({
+      where: {
+        user: { id: dto.user_id },
+        book: { id: dto.book_id },
+        status: In([ReservationStatus.PENDING, ReservationStatus.READY]),
+      },
+    });
 
     const reservation = this.reservationRepository.create({
       user: findUser,
@@ -82,6 +90,4 @@ export class ReservationService {
 
     return plainToInstance(ResponseReservationDto, cancleReservation);
   }
-
-  async promoteNextReservation(): Promise<void> {}
 }
