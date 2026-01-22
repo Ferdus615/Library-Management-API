@@ -98,6 +98,7 @@ export class LoanService {
 
       if (nextReservation) {
         nextReservation.status = ReservationStatus.READY;
+        nextReservation.ready_at = new Date();
         nextReservation.expires_at = new Date(
           Date.now() + 3 * 24 * 60 * 60 * 1000,
         );
