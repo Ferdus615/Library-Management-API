@@ -96,4 +96,26 @@ export class ReservationService {
 
     return plainToInstance(ResponseReservationDto, cancleReservation);
   }
+
+  async promoteReservation(book: Book): Promise<void> {
+    if (book.available_copies <= 0) return;
+
+    const reservation = await this.reservationRepository.findOne({
+      where: {
+        book: { id: book.id },
+        status: ReservationStatus.PENDING,
+      },
+      order: { created_at: 'ASC' },
+    });
+
+    if (!reservation) return;
+
+    reservation.status = ReservationStatus.READY;
+    reservation.ready_at = new Date();
+    reservation.expires_at = new Date(Date() + 3 * 24 * 60 * 60 * 1000);
+
+    book.available_copies -= 1;
+
+    await this.reservationRepository.save(reservation);
+  }
 }

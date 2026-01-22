@@ -13,7 +13,7 @@ import { CreateLoanDto } from './dto/createLoanDto.dto';
 import { ResponseLoanDto } from './dto/responseLoanDto.dto';
 import { UpdateLoanDto } from './dto/updateLoanDto';
 import { LoanStatus } from './enums/loanStatus.enum';
-import { Reservation } from 'src/reservation/entities/reservation.entity';
+import { ReservationService } from 'src/reservation/reservation.service';
 
 @Injectable()
 export class LoanService {
@@ -21,8 +21,7 @@ export class LoanService {
     @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Book) private readonly bookRepository: Repository<Book>,
-    @InjectRepository(Reservation)
-    private readonly reservationRepository: Repository<Reservation>,
+    private readonly reservationService: ReservationService,
   ) {}
 
   async createLoan(dto: CreateLoanDto): Promise<ResponseLoanDto> {
@@ -93,6 +92,7 @@ export class LoanService {
       await this.bookRepository.save(findLoan.book);
 
       // auto reservation promotion logic here
+      await this.reservationService.promoteReservation(findLoan.book);
     }
 
     //controlled status update logic
