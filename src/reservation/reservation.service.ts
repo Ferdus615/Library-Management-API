@@ -50,6 +50,12 @@ export class ReservationService {
       },
     });
 
+    if (existing) {
+      throw new BadRequestException(
+        `You have already requested a reservation for this book!`,
+      );
+    }
+
     const reservation = this.reservationRepository.create({
       user: findUser,
       book: findBook,
