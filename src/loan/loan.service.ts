@@ -14,7 +14,6 @@ import { ResponseLoanDto } from './dto/responseLoanDto.dto';
 import { UpdateLoanDto } from './dto/updateLoanDto';
 import { LoanStatus } from './enums/loanStatus.enum';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
-import { ReservationStatus } from 'src/reservation/enum/reservation.enum';
 
 @Injectable()
 export class LoanService {
@@ -79,45 +78,36 @@ export class LoanService {
       where: { id },
       relations: ['book'],
     });
-    if (!findLoan) throw new NotFoundException(`No such loan record found!`);
+    if (!findLoan) {
+      throw new NotFoundException(`No such loan record found!`);
+    }
 
+    // return book handle logic
     if (dto.return_date && findLoan.status !== LoanStatus.RETURNED) {
-      // findLoan.return_date = dto.return_date;
       findLoan.return_date = new Date();
       findLoan.status = LoanStatus.RETURNED;
 
-      const book = findLoan.book;
+      findLoan.book.available_copies += 1;
 
-      const nextReservation = await this.reservationRepository.findOne({
-        where: {
-          book: { id: book.id },
-          status: ReservationStatus.PENDING,
-        },
-        order: { created_at: 'ASC' },
-      });
+      await this.loanRepository.save(findLoan);
+      await this.bookRepository.save(findLoan.book);
 
-      if (nextReservation) {
-        nextReservation.status = ReservationStatus.READY;
-        nextReservation.ready_at = new Date();
-        nextReservation.expires_at = new Date(
-          Date.now() + 3 * 24 * 60 * 60 * 1000,
-        );
-
-        await this.reservationRepository.save(nextReservation);
-      } else {
-        book.available_copies += 1;
-        await this.bookRepository.save(book);
-      }
+      // auto reservation promotion logic here
     }
 
-    if (dto.status && dto.status !== LoanStatus.RETURNED) {
-      if (findLoan.status !== LoanStatus.RETURNED) {
-        findLoan.status = dto.status;
-      }
+    //controlled status update logic
+    if (
+      dto.status &&
+      findLoan.status !== LoanStatus.RETURNED &&
+      dto.status !== LoanStatus.RETURNED
+    ) {
+      findLoan.status = dto.status;
+      await this.loanRepository.save(findLoan);
     }
 
-    const updatedLoan = await this.loanRepository.save(findLoan);
-    return plainToInstance(ResponseLoanDto, updatedLoan);
+    return plainToInstance(ResponseLoanDto, findLoan, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async deleteLoan(id: string): Promise<{ message: string }> {
