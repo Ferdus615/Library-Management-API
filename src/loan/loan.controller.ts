@@ -62,7 +62,8 @@ export class LoanController {
   @Patch('/:id')
   @ApiOperation({
     summary: 'Update loan status or return date',
-    description: 'Used when a book is returned or a loan is renewed.',
+    description:
+      'Used when a book is returned or a loan is renewed. If you are returning a book the return_date has to be sent, status can is optional.',
   })
   @ApiResponse({ status: 200, type: ResponseLoanDto })
   async updateLoan(
