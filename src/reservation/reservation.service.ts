@@ -90,7 +90,19 @@ export class ReservationService {
     });
     if (!findReservation) throw new NotFoundException(`Reservation not found!`);
 
-    findReservation.status = ReservationStatus.CANCELLED;
+    if (findReservation.status === ReservationStatus.PENDING) {
+      findReservation.status = ReservationStatus.CANCELLED;
+    }
+
+    if (findReservation.status === ReservationStatus.READY) {
+      // increase book count
+      const book = findReservation.book;
+      book.available_copies += 1;
+      await this.bookRepository.save(book);
+
+      findReservation.status = ReservationStatus.CANCELLED;
+    }
+
     const cancleReservation =
       await this.reservationRepository.save(findReservation);
 

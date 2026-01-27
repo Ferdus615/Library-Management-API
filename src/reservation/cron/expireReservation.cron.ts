@@ -35,11 +35,15 @@ export class ReservationCron {
     this.logger.log(`Expiring ${expiredReservations.length} reservation(s)`);
 
     for (const reservation of expiredReservations) {
+      const book = reservation.book;
+
       reservation.status = ReservationStatus.EXPIRED;
-      reservation.book.available_copies += 1;
       await this.reservationRepository.save(reservation);
 
-      await this.reservationService.promoteReservation(reservation.book);
+      book.available_copies += 1;
+      await this.bookRepository.save(book);
+
+      await this.reservationService.promoteReservation(book);
     }
   }
 }
