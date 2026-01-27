@@ -117,5 +117,6 @@ export class ReservationService {
     book.available_copies -= 1;
 
     await this.reservationRepository.save(reservation);
+    await this.bookRepository.save(book);
   }
 }

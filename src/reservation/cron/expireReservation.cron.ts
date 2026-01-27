@@ -36,6 +36,7 @@ export class ReservationCron {
 
     for (const reservation of expiredReservations) {
       reservation.status = ReservationStatus.EXPIRED;
+      reservation.book.available_copies += 1;
       await this.reservationRepository.save(reservation);
 
       await this.reservationService.promoteReservation(reservation.book);
