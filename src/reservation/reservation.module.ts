@@ -5,11 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Book } from 'src/book/entities/book.entity';
 import { Reservation } from './entities/reservation.entity';
+import { ReservationCron } from './cron/expireReservation.cron';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Reservation, User, Book])],
   controllers: [ReservationController],
-  providers: [ReservationService],
+  providers: [ReservationService, ReservationCron],
   exports: [ReservationService],
 })
 export class ReservationModule {}
