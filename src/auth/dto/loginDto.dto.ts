@@ -1,1 +1,1 @@
-export class CreateAuthDto {}
+export class LoginAuthDto {}
