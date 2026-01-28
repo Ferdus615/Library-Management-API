@@ -11,6 +11,7 @@ import { FineModule } from './fine/fine.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ReservationModule } from './reservation/reservation.module';
 import { CategoryModule } from './category/category.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CategoryModule } from './category/category.module';
     FineModule,
     ReservationModule,
     CategoryModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
