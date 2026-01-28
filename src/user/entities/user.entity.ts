@@ -9,7 +9,6 @@ import {
 import { MemberStatus } from '../enum/member.enum';
 import { Loan } from 'src/loan/entities/loan.entity';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
-import { UserRole } from 'src/auth/enum/role.enum';
 
 @Entity('users')
 export class User {
