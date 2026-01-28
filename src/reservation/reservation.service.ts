@@ -122,13 +122,22 @@ export class ReservationService {
 
     if (!reservation) return;
 
-    reservation.status = ReservationStatus.READY;
-    reservation.ready_at = new Date();
-    reservation.expires_at = new Date(Date() + 3 * 24 * 60 * 60 * 1000);
+    const result = await this.reservationRepository.update(
+      {
+        id: reservation.id,
+        status: ReservationStatus.PENDING,
+      },
+      {
+        status: ReservationStatus.READY,
+        ready_at: new Date(),
+        expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      },
+    );
+
+    // Another process already promoted it
+    if (result.affected === 0) return;
 
     book.available_copies -= 1;
-
-    await this.reservationRepository.save(reservation);
     await this.bookRepository.save(book);
   }
 }

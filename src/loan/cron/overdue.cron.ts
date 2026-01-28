@@ -22,7 +22,7 @@ export class OverdueLoanCron {
     });
 
     this.logger.log(
-      `${today.toISOString()}: Found ${find_overdues.length} overdue loan!`,
+      `${today.toISOString()}: Found ${find_overdues.length} new overdue loan!`,
     );
 
     for (const loan of find_overdues) {
