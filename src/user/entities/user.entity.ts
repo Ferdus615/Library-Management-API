@@ -9,6 +9,7 @@ import {
 import { MemberStatus } from '../enum/member.enum';
 import { Loan } from 'src/loan/entities/loan.entity';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
+import { UserRole } from 'src/auth/enum/role.enum';
 
 @Entity('users')
 export class User {
@@ -20,6 +21,9 @@ export class User {
 
   @Column({ length: 100 })
   last_name: string;
+
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.MEMBER })
+  role: UserRole;
 
   @Column({ unique: true })
   email: string;
