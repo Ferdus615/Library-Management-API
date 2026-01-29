@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
-import { User } from 'src/user/entities/user.entity';
 import { LoginDto } from './dto/loginDto.dto';
 import { AuthResponseDto } from './dto/responseAuthDto.dto';
 import { AuthenticatedUserDto } from './dto/AuthenticatedUserDto.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class AuthService {
@@ -25,10 +25,12 @@ export class AuthService {
 
     const { password: _, ...userWithoutPassword } = findUser;
 
-    return userWithoutPassword;
+    return plainToInstance(AuthenticatedUserDto, userWithoutPassword, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  async login(user: User): Promise<AuthResponseDto> {
+  async login(user: AuthenticatedUserDto): Promise<AuthResponseDto> {
     const payload = {
       email: user.email,
       sub: user.id,
@@ -37,7 +39,7 @@ export class AuthService {
 
     return {
       access_token: this.jwtService.sign(payload),
-      user,
+      user: user,
     };
   }
 }

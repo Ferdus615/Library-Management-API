@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/loginDto.dto';
 import { AuthResponseDto } from './dto/responseAuthDto.dto';
 import { plainToInstance } from 'class-transformer';
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
