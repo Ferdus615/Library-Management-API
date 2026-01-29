@@ -99,7 +99,10 @@ export class UserController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get user details' })
+  @ApiOperation({
+    summary: 'Get user details',
+    description: 'Fetch any one users full details.',
+  })
   @ApiParam({ name: 'id', description: 'User UUID', format: 'uuid' })
   @ApiResponse({ status: 200, type: ResponseUserDto })
   @ApiResponse({ status: 404, description: 'User not found.' })
@@ -132,6 +135,17 @@ export class UserController {
   }
 
   @Get('loans/:id')
+  @ApiOperation({
+    summary: 'Find user loan(s)',
+    description: 'Fetch a users all loans information.',
+  })
+  @ApiParam({ name: 'id', example: 'The UUID of the user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Loans found successfully',
+    type: ResponseLoanDto,
+  })
+  @ApiResponse({ status: 404, description: 'Loans not found' })
   async findUserLoan(@Param('id') id: string): Promise<ResponseLoanDto[]> {
     const loans = await this.userService.findUserLoan(id);
 
