@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/createUserDto.dto';
@@ -22,6 +23,9 @@ import {
 } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { MemberStatus } from './enum/member.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @ApiTags('Users')
 @Controller('user')
