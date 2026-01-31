@@ -10,16 +10,23 @@ import {
   UsePipes,
   ValidationPipe,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/createCategoryDto.dto';
 import { UpdateCategoryDto } from './dto/updateCategoryDto.dto';
 import { plainToInstance } from 'class-transformer';
 import { ResponseCategoryDto } from './dto/responseCategoryDto.dto';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BulkCategoriesDto } from './dto/createBulkCategoryDto.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { MemberStatus } from 'src/user/enum/member.enum';
 
 @ApiTags('Categories')
+@ApiBearerAuth()
+@Roles(MemberStatus.ADMIN)
+@UseGuards(RolesGuard)
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
