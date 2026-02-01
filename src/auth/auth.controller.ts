@@ -4,13 +4,18 @@ import { LoginDto } from './dto/loginDto.dto';
 import { AuthResponseDto } from './dto/responseAuthDto.dto';
 import { plainToInstance } from 'class-transformer';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Public } from './decorators/public.decorators';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('login')
-  @ApiOperation({ summary: 'Authentication user and return JWT' })
+  @ApiOperation({
+    summary: '[Public] Authentication user and return JWT',
+    description: 'Login user and return JWT',
+  })
   @ApiResponse({
     status: 200,
     description: 'Login successful.',
