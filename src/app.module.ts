@@ -11,6 +11,9 @@ import { FineModule } from './fine/fine.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ReservationModule } from './reservation/reservation.module';
 import { CategoryModule } from './category/category.module';
+import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/guards/jwtAuth.guard';
 
 @Module({
   imports: [
@@ -23,8 +26,15 @@ import { CategoryModule } from './category/category.module';
     FineModule,
     ReservationModule,
     CategoryModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}

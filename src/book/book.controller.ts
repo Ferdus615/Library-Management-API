@@ -6,16 +6,30 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/createBookDto.dto';
 import { UpdateBookDto } from './dto/updateBookDto.dto';
 import { ResponseBookDto } from './dto/responseBookDto.dto';
 import { plainToInstance } from 'class-transformer';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { MemberStatus } from 'src/user/enum/member.enum';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Public } from 'src/auth/decorators/public.decorators';
 
 @ApiTags('books')
+@ApiBearerAuth()
+@Roles(MemberStatus.ADMIN)
+@UseGuards(RolesGuard)
 @Controller('book')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
@@ -41,6 +55,7 @@ export class BookController {
     });
   }
 
+  @Public()
   @Get()
   @ApiOperation({
     summary: 'Retrieve all books',
@@ -59,6 +74,7 @@ export class BookController {
     });
   }
 
+  @Public()
   @Get(':id')
   @ApiOperation({
     summary: 'Retrieve a single book by ID',

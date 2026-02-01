@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsString } from 'class-validator';
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { BookCategoryResponseDto } from './bookCategoryResponseDto.dto';
 
 export class ResponseBookDto {
   @ApiProperty({
@@ -9,7 +9,6 @@ export class ResponseBookDto {
     format: 'uuid', // Suggests the format in Swagger UI
   })
   @Expose()
-  @IsString()
   id: string;
 
   @ApiProperty({
@@ -18,7 +17,6 @@ export class ResponseBookDto {
     maxLength: 13,
   })
   @Expose()
-  @IsString()
   isbn: string;
 
   @ApiProperty({
@@ -27,7 +25,6 @@ export class ResponseBookDto {
     maxLength: 150,
   })
   @Expose()
-  @IsString()
   title: string;
 
   @ApiProperty({
@@ -36,7 +33,6 @@ export class ResponseBookDto {
     maxLength: 100,
   })
   @Expose()
-  @IsString()
   author: string;
 
   @ApiProperty({
@@ -45,7 +41,6 @@ export class ResponseBookDto {
     type: Number,
   })
   @Expose()
-  @IsInt()
   publication_year: number;
 
   @ApiProperty({
@@ -54,7 +49,6 @@ export class ResponseBookDto {
     type: Number,
   })
   @Expose()
-  @IsInt()
   total_copies: number;
 
   @ApiProperty({
@@ -63,7 +57,6 @@ export class ResponseBookDto {
     type: Number,
   })
   @Expose()
-  @IsInt()
   damaged_copies: number;
 
   @ApiProperty({
@@ -73,6 +66,10 @@ export class ResponseBookDto {
     type: Number,
   })
   @Expose()
-  @IsInt()
   available_copies: number;
+
+  @ApiProperty({ type: () => BookCategoryResponseDto })
+  @Expose()
+  @Type(() => BookCategoryResponseDto)
+  category?: BookCategoryResponseDto;
 }

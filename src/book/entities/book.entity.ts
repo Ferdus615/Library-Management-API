@@ -3,11 +3,12 @@ import { Loan } from 'src/loan/entities/loan.entity';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('books')
@@ -31,8 +32,7 @@ export class Book {
     onDelete: 'SET NULL',
     nullable: true,
   })
-  @JoinColumn({ name: 'category_id' })
-  category: Category;
+  category: Category | null;
 
   @Column({ type: 'int', default: 1 })
   total_copies: number;
@@ -49,9 +49,9 @@ export class Book {
   @OneToMany(() => Reservation, (reservation) => reservation.book)
   reservations: Reservation[];
 
-  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
-  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
 }

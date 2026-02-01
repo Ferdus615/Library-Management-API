@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
 import { ILike, Repository } from 'typeorm';
+import { plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/createUserDto.dto';
 import { ResponseUserDto } from './dto/responseUserDto';
 import { UpdateUserDto } from './dto/updateUserDto.dto';
-import { plainToInstance } from 'class-transformer';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
-import { Loan } from 'src/loan/entities/loan.entity';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
+import { User } from './entities/user.entity';
+import { Loan } from 'src/loan/entities/loan.entity';
 
 @Injectable()
 export class UserService {
@@ -109,5 +109,15 @@ export class UserService {
 
     await this.userRepository.remove(findUser);
     return { message: `User has been successfully removed!` };
+  }
+
+  async findUserByEmailWithPassword(email: string): Promise<User | null> {
+    const userWithPassword = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
+
+    return userWithPassword;
   }
 }

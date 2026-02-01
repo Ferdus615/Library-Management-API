@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Book } from 'src/book/entities/book.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Reservation } from './entities/reservation.entity';
 import { CreateReservationDto } from './dto/createReservationDto.dto';
 import { ResponseReservationDto } from './dto/rseponseReservationDto.dto';
@@ -42,6 +42,20 @@ export class ReservationService {
         `The book is availabel! Please loan the book.`,
       );
 
+    const existing = await this.reservationRepository.findOne({
+      where: {
+        user: { id: dto.user_id },
+        book: { id: dto.book_id },
+        status: In([ReservationStatus.PENDING, ReservationStatus.READY]),
+      },
+    });
+
+    if (existing) {
+      throw new BadRequestException(
+        `You have already requested a reservation for this book!`,
+      );
+    }
+
     const reservation = this.reservationRepository.create({
       user: findUser,
       book: findBook,
@@ -76,10 +90,54 @@ export class ReservationService {
     });
     if (!findReservation) throw new NotFoundException(`Reservation not found!`);
 
-    findReservation.status = ReservationStatus.CANCELLED;
+    if (findReservation.status === ReservationStatus.PENDING) {
+      findReservation.status = ReservationStatus.CANCELLED;
+    }
+
+    if (findReservation.status === ReservationStatus.READY) {
+      // increase book count
+      const book = findReservation.book;
+      book.available_copies += 1;
+      await this.bookRepository.save(book);
+
+      findReservation.status = ReservationStatus.CANCELLED;
+    }
+
     const cancleReservation =
       await this.reservationRepository.save(findReservation);
 
     return plainToInstance(ResponseReservationDto, cancleReservation);
+  }
+
+  async promoteReservation(book: Book): Promise<void> {
+    if (book.available_copies <= 0) return;
+
+    const reservation = await this.reservationRepository.findOne({
+      where: {
+        book: { id: book.id },
+        status: ReservationStatus.PENDING,
+      },
+      order: { created_at: 'ASC' },
+    });
+
+    if (!reservation) return;
+
+    const result = await this.reservationRepository.update(
+      {
+        id: reservation.id,
+        status: ReservationStatus.PENDING,
+      },
+      {
+        status: ReservationStatus.READY,
+        ready_at: new Date(),
+        expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      },
+    );
+
+    // Another process already promoted it
+    if (result.affected === 0) return;
+
+    book.available_copies -= 1;
+    await this.bookRepository.save(book);
   }
 }
