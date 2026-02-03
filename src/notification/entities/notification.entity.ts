@@ -1,5 +1,6 @@
 import { User } from 'src/user/entities/user.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { NotificationType } from '../enum/notificatio.enum';
 
 @Entity('notification')
 export class Notification {
@@ -15,8 +16,8 @@ export class Notification {
   @Column()
   message: string;
 
-  @Column()
-  type: string;
+  @Column({ type: 'enum', enum: NotificationType })
+  type: NotificationType;
 
   @Column({ default: false })
   is_read: boolean;
