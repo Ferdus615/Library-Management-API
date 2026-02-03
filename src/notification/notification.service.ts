@@ -26,6 +26,7 @@ export class NotificationService {
       type,
     });
 
+    console.log(notification);
     await this.notificationRepository.save(notification);
   }
 
