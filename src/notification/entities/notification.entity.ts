@@ -1,17 +1,16 @@
 import { User } from 'src/user/entities/user.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { NotificationType } from '../enum/notificatio.enum';
-import { text } from 'stream/consumers';
 
 @Entity('notification')
 export class Notification {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column({ type: 'text'})
+  @Column({ type: 'text' })
   title: string;
 
   @Column({ type: 'text' })
