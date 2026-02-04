@@ -12,9 +12,11 @@ import { CreateReservationDto } from './dto/createReservationDto.dto';
 import { ResponseReservationDto } from './dto/rseponseReservationDto.dto';
 import { ReservationStatus } from './enum/reservation.enum';
 import { plainToInstance } from 'class-transformer';
+import { NotificationType } from 'src/notification/enum/notificatio.enum';
 
 @Injectable()
 export class ReservationService {
+  notificationService: any;
   constructor(
     @InjectRepository(Reservation)
     private readonly reservationRepository: Repository<Reservation>,
@@ -64,6 +66,14 @@ export class ReservationService {
 
     const savedReservation = await this.reservationRepository.save(reservation);
 
+    await this.notificationService.notify(
+      findUser,
+      NotificationType.RESERVATION_CREATED,
+      {
+        bookTitle: findBook.title,
+      },
+    );
+
     return plainToInstance(ResponseReservationDto, savedReservation);
   }
 
@@ -106,13 +116,21 @@ export class ReservationService {
     const cancleReservation =
       await this.reservationRepository.save(findReservation);
 
+    await this.notificationService.notify(
+      findReservation.user,
+      NotificationType.RESERVATION_CANCELLED,
+      {
+        bookTitle: findReservation.book.title,
+      },
+    );
+
     return plainToInstance(ResponseReservationDto, cancleReservation);
   }
 
   async promoteReservation(book: Book): Promise<void> {
     if (book.available_copies <= 0) return;
 
-    const reservation = await this.reservationRepository.findOne({
+    const findReservation = await this.reservationRepository.findOne({
       where: {
         book: { id: book.id },
         status: ReservationStatus.PENDING,
@@ -120,11 +138,11 @@ export class ReservationService {
       order: { created_at: 'ASC' },
     });
 
-    if (!reservation) return;
+    if (!findReservation) return;
 
     const result = await this.reservationRepository.update(
       {
-        id: reservation.id,
+        id: findReservation.id,
         status: ReservationStatus.PENDING,
       },
       {
@@ -139,5 +157,13 @@ export class ReservationService {
 
     book.available_copies -= 1;
     await this.bookRepository.save(book);
+
+    await this.notificationService.notify(
+      findReservation.user,
+      NotificationType.RESERVATION_READY,
+      {
+        bookTitle: findReservation.book.title,
+      },
+    );
   }
 }
