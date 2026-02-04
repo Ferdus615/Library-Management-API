@@ -28,7 +28,7 @@ export class Reservation {
   })
   status: ReservationStatus;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ type: 'timestamptz', name: 'ready_at', nullable: true })
   ready_at: Date;
 
   @Column({ type: 'timestamptz', nullable: true })
