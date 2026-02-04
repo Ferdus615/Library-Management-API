@@ -13,15 +13,16 @@ import { ResponseReservationDto } from './dto/rseponseReservationDto.dto';
 import { ReservationStatus } from './enum/reservation.enum';
 import { plainToInstance } from 'class-transformer';
 import { NotificationType } from 'src/notification/enum/notificatio.enum';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class ReservationService {
-  notificationService: any;
   constructor(
     @InjectRepository(Reservation)
     private readonly reservationRepository: Repository<Reservation>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Book) private readonly bookRepository: Repository<Book>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async createReservation(
