@@ -4,6 +4,7 @@ import { Notification } from './entities/notification.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { NotificationType } from './enum/notificatio.enum';
+import { title } from 'process';
 
 @Injectable()
 export class NotificationService {
@@ -17,53 +18,50 @@ export class NotificationService {
     type: NotificationType,
     payload: Record<string, any>,
   ) {
-    const { title, message } = this.buildNotification(type, payload);
+    const message = this.buildMessage(type, payload);
 
     const notification = this.notificationRepository.create({
       user,
-      title,
-      message,
       type,
+      ...message,
     });
 
-    console.log(notification);
+    console.log(`Notification sent: ${notification}`);
+
     await this.notificationRepository.save(notification);
   }
 
-  private buildNotification(
-    type: NotificationType,
-    payload: Record<string, any>,
-  ) {
+  async buildMessage(type: NotificationType, payload: Record<string, any>) {
     switch (type) {
       case NotificationType.RESERVATION_READY:
         return {
-          title: 'Reservation Ready',
-          message: `Your reservation for "${payload.bookTitle}" is ready for pickup.`,
+          title: 'Book ready for pickup',
+          message: `Your reserved book "${payload.bookTitle}" is ready for pickup. Please collect it within 3 days.`,
         };
+
       case NotificationType.RESERVATION_EXPIRED:
         return {
-          title: 'Reservation Expired',
+          title: 'Book reservation expired.',
           message: `Your reservation for "${payload.bookTitle}" has expired.`,
         };
+
       case NotificationType.LOAN_RETURNED:
         return {
-          title: 'Book Returned',
-          message: `You have returned "${payload.bookTitle}".`,
+          title: 'Book returned',
+          message: `You have successfully returned "${payload.bookTitle}".`,
         };
+
       case NotificationType.LOAN_OVERDUE:
         return {
-          title: 'Book Overdue',
-          message: `The book "${payload.bookTitle}" is overdue.`,
+          title: 'Book overdue',
+          message: `Your book "${payload.bookTitle}" is overdue.`,
         };
+
       case NotificationType.FINE_CREATED:
         return {
-          title: 'Fine Issued',
-          message: `A fine of $${payload.amount} has been issued for "${payload.bookTitle}".`,
-        };
-      default:
-        return {
-          title: 'Notification',
-          message: 'You have a new notification.',
+          title: 'Fine Issued!',
+          message: `A fine of ${payload.amount} has been issued for your overdue book "${payload.bookTitle}". 
+          Please return it as soon as possible. You will be find $10 per day`,
         };
     }
   }
