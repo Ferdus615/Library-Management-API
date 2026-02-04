@@ -17,53 +17,74 @@ export class NotificationService {
     type: NotificationType,
     payload: Record<string, any>,
   ) {
-    const { title, message } = this.buildNotification(type, payload);
+    const message = this.buildMessage(type, payload);
 
     const notification = this.notificationRepository.create({
       user,
-      title,
-      message,
       type,
+      ...message,
     });
 
-    console.log(notification);
+    console.log(`Notification sent: ${notification}`);
+
     await this.notificationRepository.save(notification);
   }
 
-  private buildNotification(
-    type: NotificationType,
-    payload: Record<string, any>,
-  ) {
+  async buildMessage(type: NotificationType, payload: Record<string, any>) {
     switch (type) {
+      case NotificationType.RESERVATION_CREATED:
+        return {
+          title: 'Book Reserved!',
+          message: `You have requested a reservation for "${payload.bookTitle}".`,
+        };
+
       case NotificationType.RESERVATION_READY:
         return {
-          title: 'Reservation Ready',
-          message: `Your reservation for "${payload.bookTitle}" is ready for pickup.`,
+          title: 'Book Ready for Pickup!',
+          message: `Your reserved book "${payload.bookTitle}" is ready for pickup. Please collect it within 3 days.`,
         };
+
       case NotificationType.RESERVATION_EXPIRED:
         return {
-          title: 'Reservation Expired',
+          title: 'Book Reservation Expired!',
           message: `Your reservation for "${payload.bookTitle}" has expired.`,
         };
+
+      case NotificationType.RESERVATION_CANCELLED:
+        return {
+          title: 'Book Reservation Cancelled!',
+          message: `Your reservation for "${payload.bookTitle}" has been cancelled.`,
+        };
+
+      case NotificationType.LOAN_ISSUED:
+        return {
+          title: 'Book Issued!',
+          message: `You have successfully issued "${payload.bookTitle}".`,
+        };
+
       case NotificationType.LOAN_RETURNED:
         return {
-          title: 'Book Returned',
-          message: `You have returned "${payload.bookTitle}".`,
+          title: 'Book Returned!',
+          message: `You have successfully returned "${payload.bookTitle}".`,
         };
+
       case NotificationType.LOAN_OVERDUE:
         return {
-          title: 'Book Overdue',
-          message: `The book "${payload.bookTitle}" is overdue.`,
+          title: 'Book Overdue!',
+          message: `Your book "${payload.bookTitle}" is overdue.`,
         };
+
       case NotificationType.FINE_CREATED:
         return {
-          title: 'Fine Issued',
-          message: `A fine of $${payload.amount} has been issued for "${payload.bookTitle}".`,
+          title: 'Fine Issued!',
+          message: `A fine of $${payload.amount} has been issued for your overdue book "${payload.bookTitle}". 
+          Please return it as soon as possible. You will be find $10 per day`,
         };
-      default:
+
+      case NotificationType.FINE_PAID:
         return {
-          title: 'Notification',
-          message: 'You have a new notification.',
+          title: 'Fine Paid!',
+          message: `You have successfully paid the fine of $${payload.amount} for your overdue book "${payload.bookTitle}".`,
         };
     }
   }

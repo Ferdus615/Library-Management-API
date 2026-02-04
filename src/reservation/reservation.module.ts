@@ -6,9 +6,13 @@ import { User } from 'src/user/entities/user.entity';
 import { Book } from 'src/book/entities/book.entity';
 import { Reservation } from './entities/reservation.entity';
 import { ReservationCron } from './cron/expireReservation.cron';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Reservation, User, Book])],
+  imports: [
+    TypeOrmModule.forFeature([Reservation, User, Book]),
+    NotificationModule,
+  ],
   controllers: [ReservationController],
   providers: [ReservationService, ReservationCron],
   exports: [ReservationService],

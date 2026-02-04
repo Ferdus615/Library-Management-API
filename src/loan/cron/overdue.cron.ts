@@ -4,6 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
 import { Loan } from '../entities/loan.entity';
 import { LoanStatus } from '../enums/loanStatus.enum';
+import { NotificationType } from 'src/notification/enum/notificatio.enum';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class OverdueLoanCron {
@@ -11,6 +13,7 @@ export class OverdueLoanCron {
 
   constructor(
     @InjectRepository(Loan) private readonly loanRespository: Repository<Loan>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -33,6 +36,14 @@ export class OverdueLoanCron {
 
       this.logger.log(
         `Changed status of loan:${loan.id} to overdue. Due date was ${date}`,
+      );
+
+      await this.notificationService.notify(
+        loan.user,
+        NotificationType.LOAN_OVERDUE,
+        {
+          bookTitle: loan.book.title,
+        },
       );
     }
   }

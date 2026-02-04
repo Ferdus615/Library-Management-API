@@ -14,6 +14,8 @@ import { ResponseLoanDto } from './dto/responseLoanDto.dto';
 import { UpdateLoanDto } from './dto/updateLoanDto';
 import { LoanStatus } from './enums/loanStatus.enum';
 import { ReservationService } from 'src/reservation/reservation.service';
+import { NotificationType } from 'src/notification/enum/notificatio.enum';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class LoanService {
@@ -22,6 +24,7 @@ export class LoanService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Book) private readonly bookRepository: Repository<Book>,
     private readonly reservationService: ReservationService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async createLoan(dto: CreateLoanDto): Promise<ResponseLoanDto> {
@@ -52,6 +55,14 @@ export class LoanService {
     });
 
     const savedLoan = await this.loanRepository.save(loan);
+
+    await this.notificationService.notify(
+      findUser,
+      NotificationType.LOAN_ISSUED,
+      {
+        bootTitle: findBook.title,
+      },
+    );
 
     const fullyLoadedLoan = await this.loanRepository.findOne({
       where: { id: savedLoan.id },
@@ -93,6 +104,14 @@ export class LoanService {
 
       // auto reservation promotion logic here
       await this.reservationService.promoteReservation(findLoan.book);
+
+      await this.notificationService.notify(
+        findLoan.user,
+        NotificationType.LOAN_RETURNED,
+        {
+          bookTitle: findLoan.book.title,
+        },
+      );
     }
 
     //controlled status update logic
@@ -103,6 +122,14 @@ export class LoanService {
     ) {
       findLoan.status = dto.status;
       await this.loanRepository.save(findLoan);
+
+      await this.notificationService.notify(
+        findLoan.user,
+        NotificationType[`LOAN_${dto.status}`],
+        {
+          bookTitle: findLoan.book.title,
+        },
+      );
     }
 
     return plainToInstance(ResponseLoanDto, findLoan, {
