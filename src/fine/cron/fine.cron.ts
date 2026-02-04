@@ -4,6 +4,8 @@ import { Loan } from 'src/loan/entities/loan.entity';
 import { Repository } from 'typeorm';
 import { Fine } from '../entities/fine.entity';
 import { Cron } from '@nestjs/schedule';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/enum/notificatio.enum';
 
 @Injectable()
 export class FineCron {
@@ -13,6 +15,7 @@ export class FineCron {
   constructor(
     @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
     @InjectRepository(Fine) private readonly fineRepository: Repository<Fine>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Cron('0 * * * *')
@@ -63,6 +66,15 @@ export class FineCron {
         );
       }
       await this.fineRepository.save(fine);
+
+      await this.notificationService.notify(
+        loan.user,
+        NotificationType.FINE_CREATED,
+        {
+          bookTitle: loan.book.title,
+          amount: fineAmount,
+        },
+      );
     }
     this.logger.log(`12-hour fine accural job finished.`);
   }

@@ -13,6 +13,8 @@ import { CreateFineDto } from './dto/createFineDto.dto';
 import { ResponseFineDto } from './dto/responseFineDto.dto';
 import { PayFineDto } from './dto/payFineDto.dto';
 import { LoanStatus } from 'src/loan/enums/loanStatus.enum';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/enum/notificatio.enum';
 
 @Injectable()
 export class FineService {
@@ -20,6 +22,7 @@ export class FineService {
     @InjectRepository(Fine) private readonly fineRepository: Repository<Fine>,
     @InjectRepository(User) private readonly userRepositoty: Repository<User>,
     @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async createFine(dto: CreateFineDto): Promise<ResponseFineDto> {
@@ -52,6 +55,15 @@ export class FineService {
 
       const savedFine = await this.fineRepository.save(fine);
 
+      await this.notificationService.notify(
+        findUser,
+        NotificationType.FINE_CREATED,
+        {
+          bookTitle: findLoan.book.title,
+          amount: dto.total_amount,
+        },
+      );
+
       return plainToInstance(ResponseFineDto, savedFine);
     } else {
       throw new BadRequestException(`The loan is not overdue yet!`);
@@ -61,6 +73,7 @@ export class FineService {
   async payFine(id: string, dto: PayFineDto): Promise<ResponseFineDto> {
     const findFine = await this.fineRepository.findOne({ where: { id } });
     if (!findFine) throw new NotFoundException(`Fine not found!`);
+
     if (findFine.paid) throw new BadRequestException('Fine already paid!');
 
     if (dto.paid !== undefined) findFine.paid = dto.paid;
@@ -68,6 +81,15 @@ export class FineService {
     findFine.paid_at = dto.paid_at || new Date();
 
     const savedFine = await this.fineRepository.save(findFine);
+
+    await this.notificationService.notify(
+      findFine.user,
+      NotificationType.FINE_PAID,
+      {
+        bookTitle: findFine.loan.book.title,
+        amount: findFine.total_amount,
+      },
+    );
 
     return plainToInstance(ResponseFineDto, savedFine);
   }

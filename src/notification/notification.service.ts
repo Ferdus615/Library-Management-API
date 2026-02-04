@@ -50,6 +50,18 @@ export class NotificationService {
           message: `Your reservation for "${payload.bookTitle}" has expired.`,
         };
 
+      case NotificationType.RESERVATION_CANCELLED:
+        return {
+          title: 'Book Reservation Cancelled!',
+          message: `Your reservation for "${payload.bookTitle}" has been cancelled.`,
+        };
+
+      case NotificationType.LOAN_ISSUED:
+        return {
+          title: 'Book Issued!',
+          message: `You have successfully issued "${payload.bookTitle}".`,
+        };
+
       case NotificationType.LOAN_RETURNED:
         return {
           title: 'Book Returned!',
@@ -67,6 +79,12 @@ export class NotificationService {
           title: 'Fine Issued!',
           message: `A fine of $${payload.amount} has been issued for your overdue book "${payload.bookTitle}". 
           Please return it as soon as possible. You will be find $10 per day`,
+        };
+
+      case NotificationType.FINE_PAID:
+        return {
+          title: 'Fine Paid!',
+          message: `You have successfully paid the fine of $${payload.amount} for your overdue book "${payload.bookTitle}".`,
         };
     }
   }

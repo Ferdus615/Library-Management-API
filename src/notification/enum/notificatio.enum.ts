@@ -10,4 +10,5 @@ export enum NotificationType {
   LOAN_OVERDUE = 'loan_overdue',
   // fine notification
   FINE_CREATED = 'fine_created',
+  FINE_PAID = 'fine_paid',
 }
