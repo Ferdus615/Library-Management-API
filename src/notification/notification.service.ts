@@ -17,7 +17,7 @@ export class NotificationService {
     type: NotificationType,
     payload: Record<string, any>,
   ) {
-    const message = this.buildMessage(type, payload);
+    const message = await this.buildMessage(type, payload);
 
     const notification = this.notificationRepository.create({
       user,

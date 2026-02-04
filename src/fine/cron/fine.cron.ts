@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Loan } from 'src/loan/entities/loan.entity';
 import { Repository } from 'typeorm';
 import { Fine } from '../entities/fine.entity';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/enum/notificatio.enum';
 
@@ -18,7 +18,7 @@ export class FineCron {
     private readonly notificationService: NotificationService,
   ) {}
 
-  @Cron('0 * * * *')
+  @Cron(CronExpression.EVERY_12_HOURS)
   async AutoGenerateFines() {
     this.logger.log('Running 12-hour fine accural job....');
 
@@ -27,9 +27,12 @@ export class FineCron {
     const overdueLoans = await this.loanRepository
       .createQueryBuilder('loan')
       .leftJoinAndSelect('loan.user', 'user')
+      .leftJoinAndSelect('loan.book', 'book')
       .where('loan.due_date < :now', { now: now.toISOString() })
       .andWhere('loan.return_date IS NULL')
       .getMany();
+
+    if (!overdueLoans) return;
 
     this.logger.log(
       `${now.toISOString()}: Found ${overdueLoans.length} active overdue loans.`,
@@ -37,6 +40,7 @@ export class FineCron {
 
     for (const loan of overdueLoans) {
       const due = new Date(loan.due_date);
+      // console.log(loan.book);
 
       const overdueDays = Math.ceil(
         (now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24),
@@ -66,6 +70,8 @@ export class FineCron {
         );
       }
       await this.fineRepository.save(fine);
+
+      // console.log(loan.book);
 
       await this.notificationService.notify(
         loan.user,
