@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Loan } from './entities/loan.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -28,6 +28,16 @@ export class LoanService {
   ) {}
 
   async createLoan(dto: CreateLoanDto): Promise<ResponseLoanDto> {
+    const existingLoan = await this.loanRepository.findOne({
+      where: {
+        user: { id: dto.user_id },
+        book: { id: dto.book_id },
+        status: In([LoanStatus.ISSUED, LoanStatus.OVERDUE]),
+      },
+    });
+    if (existingLoan)
+      throw new BadRequestException(`User already has this book!`);
+
     const findUser = await this.userRepository.findOne({
       where: { id: dto.user_id },
     });
