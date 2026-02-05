@@ -49,10 +49,7 @@ export class BookController {
   async createBook(
     @Body() createBookDto: CreateBookDto,
   ): Promise<ResponseBookDto | ResponseBookDto[]> {
-    const book = await this.bookService.createBook(createBookDto);
-    return plainToInstance(ResponseBookDto, book, {
-      excludeExtraneousValues: true,
-    });
+    return await this.bookService.createBook(createBookDto);
   }
 
   @Public()
@@ -68,10 +65,7 @@ export class BookController {
     type: [ResponseBookDto],
   })
   async findAllBook(): Promise<ResponseBookDto[]> {
-    const books = await this.bookService.findAllBook();
-    return plainToInstance(ResponseBookDto, books, {
-      excludeExtraneousValues: true,
-    });
+    return await this.bookService.findAllBook();
   }
 
   @Public()
@@ -97,10 +91,7 @@ export class BookController {
     description: 'No book found with the provided ID.',
   })
   async findOneBook(@Param('id') id: string): Promise<ResponseBookDto> {
-    const book = await this.bookService.findOneBook(id);
-    return plainToInstance(ResponseBookDto, book, {
-      excludeExtraneousValues: true,
-    });
+    return await this.bookService.findOneBook(id);
   }
 
   @Get('loans/:id')
@@ -125,11 +116,7 @@ export class BookController {
     description: 'Book not found.',
   })
   async findBookLoans(@Param('id') id: string): Promise<ResponseLoanDto[]> {
-    const loans = await this.bookService.findBookLoans(id);
-
-    return plainToInstance(ResponseLoanDto, loans, {
-      excludeExtraneousValues: true,
-    });
+    return await this.bookService.findBookLoans(id);
   }
 
   @Patch(':id')
@@ -154,10 +141,7 @@ export class BookController {
     @Param('id') id: string,
     @Body() updateBookDto: UpdateBookDto,
   ): Promise<ResponseBookDto> {
-    const book = await this.bookService.updateBook(id, updateBookDto);
-    return plainToInstance(ResponseBookDto, book, {
-      excludeExtraneousValues: true,
-    });
+    return await this.bookService.updateBook(id, updateBookDto);
   }
 
   @Delete(':id')
