@@ -52,10 +52,7 @@ export class CategoryController {
   @ApiResponse({ status: 400, description: 'Category name already exists.' })
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   async create(@Body() dto: CreateCategoryDto): Promise<ResponseCategoryDto> {
-    const category = await this.categoryService.createCategory(dto);
-    return plainToInstance(ResponseCategoryDto, category, {
-      excludeExtraneousValues: true,
-    });
+    return await this.categoryService.createCategory(dto);
   }
 
   @Post('/bulk')
@@ -78,20 +75,14 @@ export class CategoryController {
   async createCategories(
     @Body() dto: BulkCategoriesDto,
   ): Promise<ResponseCategoryDto[]> {
-    const categories = await this.categoryService.createCategories(dto);
-    return plainToInstance(ResponseCategoryDto, categories, {
-      excludeExtraneousValues: true,
-    });
+    return await this.categoryService.createCategories(dto);
   }
 
   @Get()
   @ApiOperation({ summary: 'List all categories' })
   @ApiResponse({ status: 200, type: [ResponseCategoryDto] })
   async findAll(): Promise<ResponseCategoryDto[]> {
-    const categories = await this.categoryService.findAllCategory();
-    return plainToInstance(ResponseCategoryDto, categories, {
-      excludeExtraneousValues: true,
-    });
+    return await this.categoryService.findAllCategory();
   }
 
   @Get(':id')
@@ -100,10 +91,7 @@ export class CategoryController {
   @ApiResponse({ status: 200, type: ResponseCategoryDto })
   @ApiResponse({ status: 404, description: 'Category not found.' })
   async findOne(@Param('id') id: string): Promise<ResponseCategoryDto> {
-    const category = await this.categoryService.findOneCategory(id);
-    return plainToInstance(ResponseCategoryDto, category, {
-      excludeExtraneousValues: true,
-    });
+    return await this.categoryService.findOneCategory(id);
   }
 
   @Patch(':id')
@@ -115,10 +103,7 @@ export class CategoryController {
     @Param('id') id: string,
     @Body() dto: UpdateCategoryDto,
   ): Promise<ResponseCategoryDto> {
-    const category = await this.categoryService.updateCategory(id, dto);
-    return plainToInstance(ResponseCategoryDto, category, {
-      excludeExtraneousValues: true,
-    });
+    return await this.categoryService.updateCategory(id, dto);
   }
 
   @Delete(':id')
