@@ -41,10 +41,7 @@ export class LoanController {
   })
   @ApiResponse({ status: 201, type: ResponseLoanDto })
   async createLoan(@Body() dto: CreateLoanDto): Promise<ResponseLoanDto> {
-    const loan = await this.loanService.createLoan(dto);
-    return plainToInstance(ResponseLoanDto, loan, {
-      excludeExtraneousValues: true,
-    });
+    return await this.loanService.createLoan(dto);
   }
 
   @Public()
@@ -55,12 +52,7 @@ export class LoanController {
   })
   @ApiResponse({ status: 200, type: [ResponseLoanDto] })
   async findAllLoan(): Promise<ResponseLoanDto[]> {
-    const loans = await this.loanService.findAllLoan();
-    return loans.map((loan) =>
-      plainToInstance(ResponseLoanDto, loan, {
-        excludeExtraneousValues: true,
-      }),
-    );
+    return await this.loanService.findAllLoan();
   }
 
   @Public()
@@ -69,10 +61,7 @@ export class LoanController {
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiResponse({ status: 200, type: ResponseLoanDto })
   async findOneLoan(@Param('id') id: string): Promise<ResponseLoanDto> {
-    const loan = await this.loanService.findOneLoan(id);
-    return plainToInstance(ResponseLoanDto, loan, {
-      excludeExtraneousValues: true,
-    });
+    return await this.loanService.findOneLoan(id);
   }
 
   @Patch('/:id')
@@ -86,10 +75,7 @@ export class LoanController {
     @Param('id') id: string,
     @Body() dto: UpdateLoanDto,
   ): Promise<ResponseLoanDto> {
-    const loan = await this.loanService.updateLoan(id, dto);
-    return plainToInstance(ResponseLoanDto, loan, {
-      excludeExtraneousValues: true,
-    });
+    return await this.loanService.updateLoan(id, dto);
   }
 
   @Delete('/:id')
