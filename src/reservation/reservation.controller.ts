@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ReservationService } from './reservation.service';
 import { CreateReservationDto } from './dto/createReservationDto.dto';
-import { ResponseReservationDto } from './dto/rseponseReservationDto.dto';
+import { ResponseReservationDto } from './dto/responseReservationDto.dto';
 import { plainToInstance } from 'class-transformer';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
@@ -41,10 +41,7 @@ export class ReservationController {
   async createReservation(
     @Body() dto: CreateReservationDto,
   ): Promise<ResponseReservationDto> {
-    const reservation = await this.reservationService.createReservation(dto);
-    return plainToInstance(ResponseReservationDto, reservation, {
-      excludeExtraneousValues: true,
-    });
+    return await this.reservationService.createReservation(dto);
   }
 
   @Get()
@@ -54,12 +51,7 @@ export class ReservationController {
   })
   @ApiResponse({ status: 200, type: [ResponseReservationDto] })
   async findAllReservatios(): Promise<ResponseReservationDto[]> {
-    const reservations = await this.reservationService.findAllReservatios();
-    return reservations.map((res) =>
-      plainToInstance(ResponseReservationDto, res, {
-        excludeExtraneousValues: true,
-      }),
-    );
+    return await this.reservationService.findAllReservatios();
   }
 
   @Get(':id')
@@ -70,10 +62,7 @@ export class ReservationController {
   async findOneReservation(
     @Param('id') id: string,
   ): Promise<ResponseReservationDto> {
-    const reservation = await this.reservationService.findOneReservation(id);
-    return plainToInstance(ResponseReservationDto, reservation, {
-      excludeExtraneousValues: true,
-    });
+    return await this.reservationService.findOneReservation(id);
   }
 
   @Patch(':id')
@@ -91,9 +80,6 @@ export class ReservationController {
   async cancleReservation(
     @Param('id') id: string,
   ): Promise<ResponseReservationDto> {
-    const reservation = await this.reservationService.cancleReservation(id);
-    return plainToInstance(ResponseReservationDto, reservation, {
-      excludeExtraneousValues: true,
-    });
+    return await this.reservationService.cancleReservation(id);
   }
 }
