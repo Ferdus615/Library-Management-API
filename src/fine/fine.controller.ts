@@ -39,10 +39,7 @@ export class FineController {
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   @HttpCode(HttpStatus.CREATED)
   async createFine(@Body() dto: CreateFineDto): Promise<ResponseFineDto> {
-    const fine = await this.fineService.createFine(dto);
-    return plainToInstance(ResponseFineDto, fine, {
-      excludeExtraneousValues: true,
-    });
+    return await this.fineService.createFine(dto);
   }
 
   @Post('pay/:id')
@@ -70,10 +67,7 @@ export class FineController {
     @Param('id') id: string,
     @Body() dto: PayFineDto,
   ): Promise<ResponseFineDto> {
-    const payFine = await this.fineService.payFine(id, dto);
-    return plainToInstance(ResponseFineDto, payFine, {
-      excludeExtraneousValues: true,
-    });
+    return await this.fineService.payFine(id, dto);
   }
 
   @Get()
@@ -87,10 +81,7 @@ export class FineController {
     type: [ResponseFineDto],
   })
   async getAllFine(): Promise<ResponseFineDto[]> {
-    const fines = await this.fineService.getAllFine();
-    return plainToInstance(ResponseFineDto, fines, {
-      excludeExtraneousValues: true,
-    });
+    return await this.fineService.getAllFine();
   }
 
   @Get(':id')
@@ -107,10 +98,7 @@ export class FineController {
   })
   @ApiResponse({ status: 404, description: 'Fine not found.' })
   async getFineById(@Param('id') id: string): Promise<ResponseFineDto> {
-    const fine = await this.fineService.getFineById(id);
-    return plainToInstance(ResponseFineDto, fine, {
-      excludeExtraneousValues: true,
-    });
+    return await this.fineService.getFineById(id);
   }
 
   @Get('user/:userId')
@@ -127,10 +115,7 @@ export class FineController {
   async getFineByUser(
     @Param('userId') userId: string,
   ): Promise<ResponseFineDto[]> {
-    const fines = await this.fineService.getFineByUser(userId);
-    return plainToInstance(ResponseFineDto, fines, {
-      excludeExtraneousValues: true,
-    });
+    return await this.fineService.getFineByUser(userId);
   }
 
   @Get('loan/:loanId')
@@ -147,9 +132,6 @@ export class FineController {
   async getFineByLoan(
     @Param('loanId') loanId: string,
   ): Promise<ResponseFineDto[]> {
-    const fines = await this.fineService.getFineByLoan(loanId);
-    return plainToInstance(ResponseFineDto, fines, {
-      excludeExtraneousValues: true,
-    });
+    return await this.fineService.getFineByLoan(loanId);
   }
 }

@@ -64,7 +64,9 @@ export class FineService {
         },
       );
 
-      return plainToInstance(ResponseFineDto, savedFine);
+      return plainToInstance(ResponseFineDto, savedFine, {
+        excludeExtraneousValues: true,
+      });
     } else {
       throw new BadRequestException(`The loan is not overdue yet!`);
     }
@@ -91,19 +93,25 @@ export class FineService {
       },
     );
 
-    return plainToInstance(ResponseFineDto, savedFine);
+    return plainToInstance(ResponseFineDto, savedFine, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async getAllFine(): Promise<ResponseFineDto[]> {
     const findFines = await this.fineRepository.find();
-    return findFines.map((fine) => plainToInstance(ResponseFineDto, fine));
+    return findFines.map((fine) =>
+      plainToInstance(ResponseFineDto, fine, { excludeExtraneousValues: true }),
+    );
   }
 
   async getFineById(id: string): Promise<ResponseFineDto> {
     const findFine = await this.fineRepository.findOne({ where: { id } });
     if (!findFine) throw new NotFoundException(`Fine not found!`);
 
-    return plainToInstance(ResponseFineDto, findFine);
+    return plainToInstance(ResponseFineDto, findFine, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async getFineByUser(userId: string): Promise<ResponseFineDto[]> {
@@ -111,7 +119,9 @@ export class FineService {
       where: { user: { id: userId } },
     });
 
-    return findFines.map((fine) => plainToInstance(ResponseFineDto, fine));
+    return findFines.map((fine) =>
+      plainToInstance(ResponseFineDto, fine, { excludeExtraneousValues: true }),
+    );
   }
 
   async getFineByLoan(loanId: string): Promise<ResponseFineDto[]> {
@@ -119,6 +129,8 @@ export class FineService {
       where: { loan: { id: loanId } },
     });
 
-    return findFines.map((fine) => plainToInstance(ResponseFineDto, fine));
+    return findFines.map((fine) =>
+      plainToInstance(ResponseFineDto, fine, { excludeExtraneousValues: true }),
+    );
   }
 }
