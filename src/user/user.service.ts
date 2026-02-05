@@ -29,19 +29,25 @@ export class UserService {
     });
 
     const savedUser = await this.userRepository.save(findUser);
-    return plainToInstance(ResponseUserDto, savedUser);
+    return plainToInstance(ResponseUserDto, savedUser, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findAllUser(): Promise<ResponseUserDto[]> {
     const findUsers = await this.userRepository.find();
-    return findUsers.map((user) => plainToInstance(ResponseUserDto, user));
+    return findUsers.map((user) =>
+      plainToInstance(ResponseUserDto, user, { excludeExtraneousValues: true }),
+    );
   }
 
   async findOneUser(id: string): Promise<ResponseUserDto> {
     const findUser = await this.userRepository.findOne({ where: { id } });
     if (!findUser) throw new NotFoundException(`User with id:${id} not found!`);
 
-    return plainToInstance(ResponseUserDto, findUser);
+    return plainToInstance(ResponseUserDto, findUser, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findByEmail(email: string): Promise<ResponseUserDto> {
@@ -50,7 +56,9 @@ export class UserService {
       throw new NotFoundException(`User with email:${email} not found!`);
     }
 
-    return plainToInstance(ResponseUserDto, findUser);
+    return plainToInstance(ResponseUserDto, findUser, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findByName(name: string): Promise<ResponseUserDto[]> {
@@ -67,14 +75,18 @@ export class UserService {
       throw new NotFoundException(`User not found!`);
     }
 
-    return findUsers.map((user) => plainToInstance(ResponseUserDto, user));
+    return findUsers.map((user) =>
+      plainToInstance(ResponseUserDto, user, { excludeExtraneousValues: true }),
+    );
   }
 
   async findByPhone(phone: string): Promise<ResponseUserDto> {
     const findUser = await this.userRepository.findOne({ where: { phone } });
     if (!findUser) throw new NotFoundException(`User not found!`);
 
-    return plainToInstance(ResponseUserDto, findUser);
+    return plainToInstance(ResponseUserDto, findUser, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findUserLoan(id: string): Promise<ResponseLoanDto[]> {
@@ -87,7 +99,9 @@ export class UserService {
       order: { issue_date: 'DESC' },
     });
 
-    return plainToInstance(ResponseLoanDto, findLoans);
+    return plainToInstance(ResponseLoanDto, findLoans, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async updateUser(id: string, dto: UpdateUserDto): Promise<ResponseUserDto> {
@@ -100,7 +114,9 @@ export class UserService {
 
     Object.assign(findUser, dto);
     const result = await this.userRepository.save(findUser);
-    return plainToInstance(ResponseUserDto, result);
+    return plainToInstance(ResponseUserDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async removeUser(id: string) {
