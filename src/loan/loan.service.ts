@@ -78,19 +78,25 @@ export class LoanService {
       where: { id: savedLoan.id },
     });
 
-    return plainToInstance(ResponseLoanDto, fullyLoadedLoan);
+    return plainToInstance(ResponseLoanDto, fullyLoadedLoan, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findAllLoan(): Promise<ResponseLoanDto[]> {
     const findLoans = await this.loanRepository.find();
-    return findLoans.map((loan) => plainToInstance(ResponseLoanDto, loan));
+    return findLoans.map((loan) =>
+      plainToInstance(ResponseLoanDto, loan, { excludeExtraneousValues: true }),
+    );
   }
 
   async findOneLoan(id: string): Promise<ResponseLoanDto> {
     const findLoan = await this.loanRepository.findOne({ where: { id } });
     if (!findLoan) throw new NotFoundException(`No such loan record found!`);
 
-    return plainToInstance(ResponseLoanDto, findLoan);
+    return plainToInstance(ResponseLoanDto, findLoan, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async updateLoan(id: string, dto: UpdateLoanDto): Promise<ResponseLoanDto> {

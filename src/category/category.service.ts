@@ -28,7 +28,9 @@ export class CategoryService {
     const category = this.categoryRepository.create(dto);
 
     const saved = await this.categoryRepository.save(category);
-    return plainToInstance(ResponseCategoryDto, saved);
+    return plainToInstance(ResponseCategoryDto, saved, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async createCategories(
@@ -64,14 +66,18 @@ export class CategoryService {
     );
     const savedCategories = await this.categoryRepository.save(categories);
 
-    return plainToInstance(ResponseCategoryDto, savedCategories);
+    return plainToInstance(ResponseCategoryDto, savedCategories, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findAllCategory(): Promise<ResponseCategoryDto[]> {
     const findCategories = await this.categoryRepository.find();
 
     return findCategories.map((category) =>
-      plainToInstance(ResponseCategoryDto, category),
+      plainToInstance(ResponseCategoryDto, category, {
+        excludeExtraneousValues: true,
+      }),
     );
   }
 
@@ -81,7 +87,9 @@ export class CategoryService {
     });
     if (!findCategory) throw new NotFoundException(`Category not found!`);
 
-    return plainToInstance(ResponseCategoryDto, findCategory);
+    return plainToInstance(ResponseCategoryDto, findCategory, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async updateCategory(
@@ -102,7 +110,9 @@ export class CategoryService {
     // const category = this.categoryRepository.merge(category, dto);
 
     const saved = await this.categoryRepository.save(category);
-    return plainToInstance(ResponseCategoryDto, saved);
+    return plainToInstance(ResponseCategoryDto, saved, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async remove(id: string): Promise<{ message: string }> {

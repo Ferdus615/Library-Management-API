@@ -53,7 +53,7 @@ export class BookService {
 
     const savedBook = await this.bookRepository.save(addBook);
     const response = savedBook.map((book) =>
-      plainToInstance(ResponseBookDto, book),
+      plainToInstance(ResponseBookDto, book, { excludeExtraneousValues: true }),
     );
 
     return Array.isArray(createBookDto) ? response : response[0];
@@ -61,14 +61,18 @@ export class BookService {
 
   async findAllBook(): Promise<ResponseBookDto[]> {
     const books = await this.bookRepository.find();
-    return books.map((book) => plainToInstance(ResponseBookDto, book));
+    return books.map((book) =>
+      plainToInstance(ResponseBookDto, book, { excludeExtraneousValues: true }),
+    );
   }
 
   async findOneBook(id: string): Promise<ResponseBookDto> {
     const book = await this.bookRepository.findOne({ where: { id } });
     if (!book) throw new NotFoundException(`Book with ID-${id} not found`);
 
-    return plainToInstance(ResponseBookDto, book);
+    return plainToInstance(ResponseBookDto, book, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findBookLoans(id: string): Promise<ResponseLoanDto[]> {
@@ -81,7 +85,9 @@ export class BookService {
       order: { issue_date: 'DESC' },
     });
 
-    return plainToInstance(ResponseLoanDto, loans);
+    return plainToInstance(ResponseLoanDto, loans, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async updateBook(id: string, dto: UpdateBookDto): Promise<ResponseBookDto> {
@@ -148,7 +154,9 @@ export class BookService {
     }
 
     const savedBook = await this.bookRepository.save(book);
-    return plainToInstance(ResponseBookDto, savedBook);
+    return plainToInstance(ResponseBookDto, savedBook, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async removeBook(id: string) {

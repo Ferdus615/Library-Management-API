@@ -9,7 +9,7 @@ import { User } from 'src/user/entities/user.entity';
 import { In, Repository } from 'typeorm';
 import { Reservation } from './entities/reservation.entity';
 import { CreateReservationDto } from './dto/createReservationDto.dto';
-import { ResponseReservationDto } from './dto/rseponseReservationDto.dto';
+import { ResponseReservationDto } from './dto/responseReservationDto.dto';
 import { ReservationStatus } from './enum/reservation.enum';
 import { plainToInstance } from 'class-transformer';
 import { NotificationType } from 'src/notification/enum/notificatio.enum';
@@ -75,14 +75,18 @@ export class ReservationService {
       },
     );
 
-    return plainToInstance(ResponseReservationDto, savedReservation);
+    return plainToInstance(ResponseReservationDto, savedReservation, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findAllReservatios(): Promise<ResponseReservationDto[]> {
     const findReservations = await this.reservationRepository.find();
 
     return findReservations.map((reservation) =>
-      plainToInstance(ResponseReservationDto, reservation),
+      plainToInstance(ResponseReservationDto, reservation, {
+        excludeExtraneousValues: true,
+      }),
     );
   }
 
@@ -92,7 +96,9 @@ export class ReservationService {
     });
     if (!findReservation) throw new NotFoundException(`Reservation not found!`);
 
-    return plainToInstance(ResponseReservationDto, findReservation);
+    return plainToInstance(ResponseReservationDto, findReservation, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async cancleReservation(id: string): Promise<ResponseReservationDto> {
@@ -125,7 +131,9 @@ export class ReservationService {
       },
     );
 
-    return plainToInstance(ResponseReservationDto, cancleReservation);
+    return plainToInstance(ResponseReservationDto, cancleReservation, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async promoteReservation(book: Book): Promise<void> {
