@@ -21,17 +21,18 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { plainToInstance } from 'class-transformer';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { MemberStatus } from './enum/member.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { Public } from 'src/auth/decorators/public.decorators';
 
 @ApiTags('Users')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Public()
   @Post()
   @ApiOperation({
     summary: 'Register a new user',
@@ -51,6 +52,8 @@ export class UserController {
     return await this.userService.createUser(dto);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @Get()
   @ApiOperation({
     summary: 'Get all users',
@@ -65,6 +68,8 @@ export class UserController {
     return await this.userService.findAllUser();
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @Get('names')
   @ApiOperation({ summary: 'Search users by name' })
   @ApiQuery({
@@ -77,6 +82,8 @@ export class UserController {
     return await this.userService.findByName(name);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @Get('phones')
   @ApiOperation({ summary: 'Search user by phone number' })
   @ApiQuery({
@@ -90,6 +97,8 @@ export class UserController {
     return await this.userService.findByPhone(phone);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @Get(':id')
   @ApiOperation({
     summary: 'Get user details',
@@ -104,6 +113,8 @@ export class UserController {
     return await this.userService.findOneUser(id);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @Get('email/:email')
   @ApiOperation({
     summary: 'Find user by email',
@@ -120,6 +131,8 @@ export class UserController {
     return await this.userService.findByEmail(email);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @Get('loans/:id')
   @ApiOperation({
     summary: 'Find user loan(s)',
@@ -136,6 +149,8 @@ export class UserController {
     return await this.userService.findUserLoan(id);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @Patch(':id')
   @ApiOperation({
     summary: 'Update user',
@@ -155,6 +170,8 @@ export class UserController {
     return await this.userService.updateUser(id, dto);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @Delete(':id')
   @ApiOperation({
     summary: 'Delete user',
