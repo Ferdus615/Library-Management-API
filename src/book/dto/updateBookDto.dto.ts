@@ -53,8 +53,9 @@ export class UpdateBookDto {
   damaged_copies?: number;
 
   @ApiProperty({
-    description: 'The cover image of the book',
-    example: 'https://example.com/cover.jpg',
+    description: 'Public URL of the book cover image',
+    example:
+      'https://xyz.supabase.co/storage/v1/object/public/book-covers/uuid.jpg',
     maxLength: 255, // Explicitly set for Swagger UI
   })
   @IsNotEmpty()
