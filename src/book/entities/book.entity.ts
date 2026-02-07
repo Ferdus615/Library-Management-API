@@ -49,6 +49,9 @@ export class Book {
   @OneToMany(() => Reservation, (reservation) => reservation.book)
   reservations: Reservation[];
 
+  @Column({ type: 'varchar', length: 255 })
+  cover_image: string;
+
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 

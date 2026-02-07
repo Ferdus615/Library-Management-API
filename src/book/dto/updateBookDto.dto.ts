@@ -5,6 +5,8 @@ import {
   MaxLength,
   IsOptional,
   IsUUID,
+  IsNotEmpty,
+  IsUrl,
 } from 'class-validator';
 export class UpdateBookDto {
   @ApiProperty({
@@ -49,6 +51,16 @@ export class UpdateBookDto {
   @IsNumber()
   @IsOptional()
   damaged_copies?: number;
+
+  @ApiProperty({
+    description: 'The cover image of the book',
+    example: 'https://example.com/cover.jpg',
+    maxLength: 255, // Explicitly set for Swagger UI
+  })
+  @IsNotEmpty()
+  @IsUrl()
+  @MaxLength(255)
+  cover_image: string;
 
   @ApiProperty({
     description: 'The UUID of the category',
