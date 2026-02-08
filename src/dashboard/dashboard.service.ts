@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, UseGuards } from '@nestjs/common';
 import { AdminDashboardDto } from './dto/adminDashboardDto.dto';
 import { MemberDashboardDto } from './dto/memberDashboardDto.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +13,8 @@ import { Repository } from 'typeorm';
 import { LoanStatus } from 'src/loan/enums/loanStatus.enum';
 import { MemberStatus } from 'src/user/enum/member.enum';
 import { ReservationStatus } from 'src/reservation/enum/reservation.enum';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Injectable()
 export class DashboardService {
@@ -25,10 +27,10 @@ export class DashboardService {
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectRepository(Category)
     private readonly categoryRepo: Repository<Category>,
-    @InjectRepository(Notification)
-    private readonly notificationRepo: Repository<Notification>,
   ) {}
 
+  @UseGuards(RolesGuard)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   async getAdminDashboard(): Promise<AdminDashboardDto> {
     const [
       totalBook,
@@ -44,6 +46,7 @@ export class DashboardService {
       totalReservations,
       totalFines,
       totalFineAmount,
+      totalCategories,
     ] = await Promise.all([
       this.bookRepo.count(),
 
@@ -97,7 +100,10 @@ export class DashboardService {
       this.fineRepo
         .createQueryBuilder('f')
         .select('SUM(f.total_amount)', 'sum')
+        .where({ paid: false })
         .getRawOne(),
+
+      this.categoryRepo.count(),
     ]);
 
     return {
@@ -114,8 +120,50 @@ export class DashboardService {
       totalReservations,
       totalFines,
       totalFineAmount: Number(totalFineAmount.sum) || 0,
+      totalCategories,
     };
   }
 
-  async getMemberDashboard(id: string): Promise<MemberDashboardDto> {}
+  async getMemberDashboard(id: string): Promise<MemberDashboardDto> {
+    const user = await this.userRepo.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const [
+      activeLoans,
+      overdueLoans,
+      totalReservation,
+      totalFines,
+      totalFineAmount,
+    ] = await Promise.all([
+      this.loanRepo.count({
+        where: { user: { id }, status: LoanStatus.ISSUED },
+      }),
+
+      this.loanRepo.count({
+        where: { user: { id }, status: LoanStatus.OVERDUE },
+      }),
+
+      this.reservationRepo.count({
+        where: { user: { id }, status: ReservationStatus.PENDING },
+      }),
+
+      this.fineRepo.count({
+        where: { user: { id }, paid: false },
+      }),
+
+      this.loanRepo
+        .createQueryBuilder('l')
+        .select('SUM(l.total_amount)', 'sum')
+        .where({ paid: false })
+        .getRawOne(),
+    ]);
+
+    return {
+      activeLoans,
+      overdueLoans,
+      totalReservation,
+      totalFines,
+      totalFineAmount: Number(totalFineAmount.sum) || 0,
+    };
+  }
 }

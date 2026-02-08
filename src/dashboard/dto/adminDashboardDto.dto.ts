@@ -59,4 +59,8 @@ export class AdminDashboardDto {
   @ApiProperty({ description: 'Total unpaid fine amount', example: 100 })
   @Expose()
   totalFineAmount: number;
+
+  @ApiProperty({ description: 'Total number of categories', example: 100 })
+  @Expose()
+  totalCategories: number;
 }

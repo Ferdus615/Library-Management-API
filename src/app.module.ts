@@ -16,7 +16,6 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwtAuth.guard';
 import { NotificationModule } from './notification/notification.module';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
