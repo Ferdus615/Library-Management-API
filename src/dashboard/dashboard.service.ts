@@ -9,20 +9,113 @@ import { Reservation } from 'src/reservation/entities/reservation.entity';
 import { Fine } from 'src/fine/entities/fine.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
+import { Repository } from 'typeorm';
+import { LoanStatus } from 'src/loan/enums/loanStatus.enum';
+import { MemberStatus } from 'src/user/enum/member.enum';
+import { ReservationStatus } from 'src/reservation/enum/reservation.enum';
 
 @Injectable()
 export class DashboardService {
   constructor(
-    @InjectRepository(Book)
-    @InjectRepository(Loan)
+    @InjectRepository(Book) private readonly bookRepo: Repository<Book>,
+    @InjectRepository(Loan) private readonly loanRepo: Repository<Loan>,
     @InjectRepository(Reservation)
-    @InjectRepository(Fine)
-    @InjectRepository(User)
+    private readonly reservationRepo: Repository<Reservation>,
+    @InjectRepository(Fine) private readonly fineRepo: Repository<Fine>,
+    @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectRepository(Category)
+    private readonly categoryRepo: Repository<Category>,
     @InjectRepository(Notification)
+    private readonly notificationRepo: Repository<Notification>,
   ) {}
 
-  async getAdminDashboard(): Promise<AdminDashboardDto> {}
+  async getAdminDashboard(): Promise<AdminDashboardDto> {
+    const [
+      totalBook,
+      totalCopies,
+      totalAvailableCopies,
+      totalDamagedCopies,
+      totalLoanedCopies,
+      totalOverdueCopies,
+      totalActiveUser,
+      totalMembers,
+      totalLibrarian,
+      totalAdmin,
+      totalReservations,
+      totalFines,
+      totalFineAmount,
+    ] = await Promise.all([
+      this.bookRepo.count(),
 
-  async getMemberDashboard(id: any): Promise<MemberDashboardDto> {}
+      this.bookRepo
+        .createQueryBuilder('b')
+        .select('SUM(b.total_copies)', 'sum')
+        .getRawOne(),
+
+      this.bookRepo
+        .createQueryBuilder('b')
+        .select('SUM(b.available_copies)', 'sum')
+        .getRawOne(),
+
+      this.bookRepo
+        .createQueryBuilder('b')
+        .select('SUM(b.damaged_copies)', 'sum')
+        .getRawOne(),
+
+      this.loanRepo.count({
+        where: { status: LoanStatus.ISSUED },
+      }),
+
+      this.loanRepo.count({
+        where: { status: LoanStatus.OVERDUE },
+      }),
+
+      this.userRepo.count({
+        where: { is_active: true },
+      }),
+
+      this.userRepo.count({
+        where: { role: MemberStatus.MEMBER, is_active: true },
+      }),
+
+      this.userRepo.count({
+        where: { role: MemberStatus.LIBRARIAN, is_active: true },
+      }),
+
+      this.userRepo.count({
+        where: { role: MemberStatus.ADMIN, is_active: true },
+      }),
+
+      this.reservationRepo.count({
+        where: { status: ReservationStatus.PENDING },
+      }),
+
+      this.fineRepo.count({
+        where: { paid: false },
+      }),
+
+      this.fineRepo
+        .createQueryBuilder('f')
+        .select('SUM(f.total_amount)', 'sum')
+        .getRawOne(),
+    ]);
+
+    return {
+      totalBook,
+      totalCopies: Number(totalCopies.sum) || 0,
+      totalAvailableCopies: Number(totalAvailableCopies.sum) || 0,
+      totalDamagedCopies: Number(totalDamagedCopies.sum) || 0,
+      totalLoanedCopies,
+      totalOverdueCopies,
+      totalActiveUser,
+      totalMembers,
+      totalLibrarian,
+      totalAdmin,
+      totalReservations,
+      totalFines,
+      totalFineAmount: Number(totalFineAmount.sum) || 0,
+    };
+  }
+
+  async getMemberDashboard(id: string): Promise<MemberDashboardDto> {}
 }
