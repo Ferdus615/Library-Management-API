@@ -13,8 +13,6 @@ import { Repository } from 'typeorm';
 import { LoanStatus } from 'src/loan/enums/loanStatus.enum';
 import { MemberStatus } from 'src/user/enum/member.enum';
 import { ReservationStatus } from 'src/reservation/enum/reservation.enum';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Injectable()
 export class DashboardService {
@@ -29,8 +27,6 @@ export class DashboardService {
     private readonly categoryRepo: Repository<Category>,
   ) {}
 
-  @UseGuards(RolesGuard)
-  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   async getAdminDashboard(): Promise<AdminDashboardDto> {
     const [
       totalBook,
@@ -151,10 +147,11 @@ export class DashboardService {
         where: { user: { id }, paid: false },
       }),
 
-      this.loanRepo
-        .createQueryBuilder('l')
-        .select('SUM(l.total_amount)', 'sum')
-        .where({ paid: false })
+      this.fineRepo
+        .createQueryBuilder('f')
+        .select('SUM(f.total_amount)', 'sum')
+        .where('f.user = :id', { id })
+        .andWhere('f.paid = :paid', { paid: false })
         .getRawOne(),
     ]);
 
