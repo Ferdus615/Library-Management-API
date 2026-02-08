@@ -23,6 +23,12 @@ export class BookService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
+  private isValidSupabaseUrl(url: string): boolean {
+    const bucketUrl = process.env.SUPABASE_BUCKET_URL;
+    if (!bucketUrl) return false;
+    return url.startsWith(bucketUrl);
+  }
+
   async createBook(
     createBookDto: CreateBookDto | CreateBookDto[],
   ): Promise<ResponseBookDto | ResponseBookDto[]> {
@@ -121,6 +127,17 @@ export class BookService {
       }
 
       delete dto.damaged_copies;
+    }
+
+    // ─────────────────────────
+    // Handle image upload
+    // ─────────────────────────
+    if (dto.cover_image !== undefined) {
+      if (!this.isValidSupabaseUrl(dto.cover_image)) {
+        throw new BadRequestException(`Invalid Supabase URL!`);
+      }
+
+      book.cover_image = dto.cover_image;
     }
 
     // ─────────────────────────

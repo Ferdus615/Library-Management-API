@@ -68,6 +68,15 @@ export class ResponseBookDto {
   @Expose()
   available_copies: number;
 
+  @ApiProperty({
+    description: 'Public URL of the book cover image',
+    example:
+      'https://xyz.supabase.co/storage/v1/object/public/book-covers/uuid.jpg',
+    maxLength: 255,
+  })
+  @Expose()
+  cover_image: string;
+
   @ApiProperty({ type: () => BookCategoryResponseDto })
   @Expose()
   @Type(() => BookCategoryResponseDto)

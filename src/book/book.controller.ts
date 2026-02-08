@@ -19,7 +19,6 @@ import { BookService } from './book.service';
 import { CreateBookDto } from './dto/createBookDto.dto';
 import { UpdateBookDto } from './dto/updateBookDto.dto';
 import { ResponseBookDto } from './dto/responseBookDto.dto';
-import { plainToInstance } from 'class-transformer';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { MemberStatus } from 'src/user/enum/member.enum';
@@ -27,7 +26,6 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Public } from 'src/auth/decorators/public.decorators';
 
 @ApiTags('books')
-@ApiBearerAuth()
 @Roles(MemberStatus.ADMIN)
 @UseGuards(RolesGuard)
 @Controller('book')
