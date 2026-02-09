@@ -11,7 +11,6 @@ import {
 import { LoanService } from './loan.service';
 import { CreateLoanDto } from './dto/createLoanDto.dto';
 import { ResponseLoanDto } from './dto/responseLoanDto.dto';
-import { plainToInstance } from 'class-transformer';
 import { UpdateLoanDto } from './dto/updateLoanDto';
 import {
   ApiBearerAuth,
@@ -23,11 +22,9 @@ import {
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { MemberStatus } from 'src/user/enum/member.enum';
-import { Public } from 'src/auth/decorators/public.decorators';
-
 @ApiTags('Loans')
 @ApiBearerAuth()
-@Roles(MemberStatus.ADMIN)
+@Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
 @UseGuards(RolesGuard)
 @Controller('loan')
 export class LoanController {
@@ -44,7 +41,6 @@ export class LoanController {
     return await this.loanService.createLoan(dto);
   }
 
-  @Public()
   @Get()
   @ApiOperation({
     summary: 'List all loans',
@@ -55,7 +51,6 @@ export class LoanController {
     return await this.loanService.findAllLoan();
   }
 
-  @Public()
   @Get('/:id')
   @ApiOperation({ summary: 'Get loan details by ID' })
   @ApiParam({ name: 'id', format: 'uuid' })

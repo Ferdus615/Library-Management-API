@@ -13,9 +13,15 @@ import {
 import { ReservationService } from './reservation.service';
 import { CreateReservationDto } from './dto/createReservationDto.dto';
 import { ResponseReservationDto } from './dto/responseReservationDto.dto';
-import { plainToInstance } from 'class-transformer';
-import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { MemberStatus } from 'src/user/enum/member.enum';
+import { UseGuards } from '@nestjs/common';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 
+@ApiTags('Reservations')
+@Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+@UseGuards(RolesGuard)
 @Controller('reservation')
 export class ReservationController {
   constructor(private readonly reservationService: ReservationService) {}
