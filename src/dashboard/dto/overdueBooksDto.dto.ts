@@ -1,18 +1,22 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { BookOverdueDto } from './bookOverdueDto.dto';
+import { UserOverdueDto } from './userOverdueDto.dto';
 
 export class OverdueBooksDto {
   @Expose()
-  book: string;
+  id: string;
 
   @Expose()
-  user: string;
+  @Type(() => BookOverdueDto)
+  book: BookOverdueDto;
 
   @Expose()
-  dueDate: Date;
+  @Type(() => UserOverdueDto)
+  user: UserOverdueDto;
 
   @Expose()
-  issuedDate: Date;
+  due_date: string;
 
   @Expose()
-  fine: number;
+  issue_date: string;
 }
