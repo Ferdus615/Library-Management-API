@@ -62,7 +62,7 @@ export class DashboardController {
     return await this.dashboardService.getMemberDashboard(req.user.id);
   }
 
-  @Public()
+  // @Public()
   @Get('admin/overdue')
   @ApiOperation({
     summary: 'Get overdue books',
@@ -81,8 +81,8 @@ export class DashboardController {
     status: 403,
     description: 'Forbidden',
   })
-  // @UseGuards(RolesGuard)
-  // @Roles(MemberStatus.LIBRARIAN, MemberStatus.ADMIN)
+  @UseGuards(RolesGuard)
+  @Roles(MemberStatus.LIBRARIAN, MemberStatus.ADMIN)
   async getOverdueBooks(): Promise<OverdueBooksDto[]> {
     return await this.dashboardService.overdueBook();
   }
