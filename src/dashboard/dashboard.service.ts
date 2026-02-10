@@ -163,4 +163,6 @@ export class DashboardService {
       totalFineAmount: Number(totalFineAmount.sum) || 0,
     };
   }
+
+  async overdueBook() {}
 }
