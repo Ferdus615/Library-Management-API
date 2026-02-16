@@ -13,6 +13,8 @@ import { Repository } from 'typeorm';
 import { LoanStatus } from 'src/loan/enums/loanStatus.enum';
 import { MemberStatus } from 'src/user/enum/member.enum';
 import { ReservationStatus } from 'src/reservation/enum/reservation.enum';
+import { plainToInstance } from 'class-transformer';
+import { OverdueBooksDto } from './dto/overdueBooksDto.dto';
 
 @Injectable()
 export class DashboardService {
@@ -162,5 +164,21 @@ export class DashboardService {
       totalFines,
       totalFineAmount: Number(totalFineAmount.sum) || 0,
     };
+  }
+
+  async overdueBook(): Promise<OverdueBooksDto[]> {
+    const findOverdueBooks = await this.loanRepo.find({
+      where: { status: LoanStatus.OVERDUE },
+      relations: {
+        user: true,
+        book: true,
+      },
+    });
+
+    return findOverdueBooks.map((overdueBook) =>
+      plainToInstance(OverdueBooksDto, overdueBook, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 }
