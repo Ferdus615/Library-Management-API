@@ -133,6 +133,7 @@ export class UserService {
       .addSelect('user.password')
       .where('user.email = :email', { email })
       .getOne();
+    if (!userWithPassword) return null;
 
     return userWithPassword;
   }
