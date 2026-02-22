@@ -1,4 +1,4 @@
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import { FineUserResponseDto } from './fineUserResponseDto.dto';
 import { FineLoanResponseDto } from './fineLoanResponseDto.dto';
 import { ApiProperty } from '@nestjs/swagger';
@@ -21,6 +21,11 @@ export class ResponseFineDto {
   @Expose()
   @Type(() => FineLoanResponseDto)
   loan: FineLoanResponseDto;
+
+  @ApiProperty({ description: 'The title of the book.', example: 'Book Title' })
+  @Expose()
+  @Transform(({ obj }) => obj.loan?.book?.title)
+  book_title: string;
 
   @ApiProperty({ description: 'The total fine amount.', example: 50.0 })
   @Expose()
