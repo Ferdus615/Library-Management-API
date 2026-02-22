@@ -7,7 +7,6 @@ import { AdminDashboardDto } from './dto/adminDashboardDto.dto';
 import { MemberDashboardDto } from './dto/memberDashboardDto.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { OverdueBooksDto } from './dto/overdueBooksDto.dto';
-import { Public } from 'src/auth/decorators/public.decorators';
 
 @ApiTags('Dashboard')
 @Controller('dashboard')
