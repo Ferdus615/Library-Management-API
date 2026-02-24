@@ -33,6 +33,20 @@ export class ResponseUserDto {
   email: string;
 
   @ApiProperty({
+    description: 'User phone number.',
+    example: '1234567890',
+  })
+  @Expose()
+  phone: string | null;
+
+  @ApiProperty({
+    description: 'User address.',
+    example: '123 Main St',
+  })
+  @Expose()
+  address: string | null;
+
+  @ApiProperty({
     description: 'Assigned system role.',
     example: 'admin',
   })
