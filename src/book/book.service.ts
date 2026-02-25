@@ -66,7 +66,9 @@ export class BookService {
   }
 
   async findAllBook(): Promise<ResponseBookDto[]> {
-    const books = await this.bookRepository.find();
+    const books = await this.bookRepository.find({
+      relations: ['category'],
+    });
     return books.map((book) =>
       plainToInstance(ResponseBookDto, book, { excludeExtraneousValues: true }),
     );
