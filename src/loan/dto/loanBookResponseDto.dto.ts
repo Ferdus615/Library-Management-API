@@ -23,4 +23,11 @@ export class LoanBookResponseDto {
   @ApiProperty({ description: 'The 13-digit ISBN', example: '9780316769488' })
   @Expose()
   isbn: string;
+
+  @ApiProperty({
+    description: 'The cover image of the book',
+    example: 'https://example.com/cover.jpg',
+  })
+  @Expose()
+  cover_image: string;
 }
