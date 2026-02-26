@@ -8,13 +8,7 @@ import {
   Delete,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/createBookDto.dto';
 import { UpdateBookDto } from './dto/updateBookDto.dto';
@@ -26,12 +20,12 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Public } from 'src/auth/decorators/public.decorators';
 
 @ApiTags('books')
-@Roles(MemberStatus.ADMIN)
-@UseGuards(RolesGuard)
 @Controller('book')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
+  @Roles(MemberStatus.ADMIN)
+  @UseGuards(RolesGuard)
   @Post()
   @ApiOperation({
     summary: 'Create a new book record',
@@ -92,6 +86,8 @@ export class BookController {
     return await this.bookService.findOneBook(id);
   }
 
+  @Roles(MemberStatus.ADMIN)
+  @UseGuards(RolesGuard)
   @Get('loans/:id')
   @ApiOperation({
     summary: 'Retrieve loan history for a specific book',
@@ -117,6 +113,8 @@ export class BookController {
     return await this.bookService.findBookLoans(id);
   }
 
+  @Roles(MemberStatus.ADMIN)
+  @UseGuards(RolesGuard)
   @Patch(':id')
   @ApiOperation({
     summary: 'Update an existing book record',
@@ -142,6 +140,8 @@ export class BookController {
     return await this.bookService.updateBook(id, updateBookDto);
   }
 
+  @Roles(MemberStatus.ADMIN)
+  @UseGuards(RolesGuard)
   @Delete(':id')
   @ApiOperation({
     summary: 'Delete a book record',
