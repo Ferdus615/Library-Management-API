@@ -48,7 +48,6 @@ export class CreateBookDto {
   })
   @IsNotEmpty()
   @IsNumber()
-  @Min(1900)
   publication_year: number;
 
   @ApiProperty({
@@ -69,4 +68,12 @@ export class CreateBookDto {
   @IsUUID()
   @IsOptional()
   category_id?: string;
+
+  @ApiProperty({
+    description: 'The cover image of the book',
+    example: 'https://example.com/cover.jpg',
+  })
+  @IsNotEmpty()
+  @IsString()
+  cover_image: string;
 }
