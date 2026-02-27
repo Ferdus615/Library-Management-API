@@ -20,13 +20,13 @@ import { UseGuards } from '@nestjs/common';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @ApiTags('Reservations')
-@Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
 @UseGuards(RolesGuard)
 @Controller('reservation')
 export class ReservationController {
   constructor(private readonly reservationService: ReservationService) {}
 
   @Post()
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
   @ApiOperation({
     summary: 'Create a new book reservation',
     description:
@@ -51,6 +51,7 @@ export class ReservationController {
   }
 
   @Get()
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @ApiOperation({
     summary: 'Get all reservations',
     description: 'Returns a complete list of all reservations in the system.',
@@ -61,6 +62,7 @@ export class ReservationController {
   }
 
   @Get(':id')
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
   @ApiOperation({ summary: 'Get reservation details by ID' })
   @ApiParam({ name: 'id', description: 'Reservation UUID', format: 'uuid' })
   @ApiResponse({ status: 200, type: ResponseReservationDto })
@@ -72,6 +74,7 @@ export class ReservationController {
   }
 
   @Patch(':id')
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
   @ApiOperation({
     summary: 'Cancel a reservation',
     description: 'Updates the reservation status to CANCELLED.',
@@ -83,9 +86,9 @@ export class ReservationController {
     type: ResponseReservationDto,
   })
   @ApiResponse({ status: 404, description: 'Reservation not found.' })
-  async cancleReservation(
+  async cancelReservation(
     @Param('id') id: string,
   ): Promise<ResponseReservationDto> {
-    return await this.reservationService.cancleReservation(id);
+    return await this.reservationService.cancelReservation(id);
   }
 }

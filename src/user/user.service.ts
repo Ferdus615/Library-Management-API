@@ -7,6 +7,7 @@ import { CreateUserDto } from './dto/createUserDto.dto';
 import { ResponseUserDto } from './dto/responseUserDto';
 import { UpdateUserDto } from './dto/updateUserDto.dto';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
+import { ResponseReservationDto } from 'src/reservation/dto/responseReservationDto.dto';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
 import { User } from './entities/user.entity';
 import { Loan } from 'src/loan/entities/loan.entity';
@@ -102,6 +103,23 @@ export class UserService {
     return plainToInstance(ResponseLoanDto, findLoans, {
       excludeExtraneousValues: true,
     });
+  }
+
+  async findUserReservations(id: string): Promise<ResponseReservationDto[]> {
+    const findUser = await this.userRepository.findOne({ where: { id } });
+    if (!findUser) throw new NotFoundException(`User with id:${id} not found!`);
+
+    const findReservations = await this.reservationRepository.find({
+      where: { user: { id } },
+      relations: ['book'],
+      order: { created_at: 'DESC' },
+    });
+
+    return findReservations.map((reservation) =>
+      plainToInstance(ResponseReservationDto, reservation, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   async updateUser(id: string, dto: UpdateUserDto): Promise<ResponseUserDto> {

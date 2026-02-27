@@ -22,6 +22,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
+import { ResponseReservationDto } from 'src/reservation/dto/responseReservationDto.dto';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { MemberStatus } from './enum/member.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -147,6 +148,26 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'Loans not found' })
   async findUserLoan(@Param('id') id: string): Promise<ResponseLoanDto[]> {
     return await this.userService.findUserLoan(id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
+  @Get('reservations/:id')
+  @ApiOperation({
+    summary: 'Find user reservation(s)',
+    description: "Fetch a user's all reservation information.",
+  })
+  @ApiParam({ name: 'id', example: 'The UUID of the user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reservations found successfully',
+    type: [ResponseReservationDto],
+  })
+  @ApiResponse({ status: 404, description: 'Reservations not found' })
+  async findUserReservations(
+    @Param('id') id: string,
+  ): Promise<ResponseReservationDto[]> {
+    return await this.userService.findUserReservations(id);
   }
 
   @UseGuards(RolesGuard)
