@@ -38,10 +38,10 @@ export class ResponseBookDto {
   @ApiProperty({
     description: 'The year the book was published.',
     example: 1925,
-    type: Number,
+    type: String,
   })
   @Expose()
-  publication_year: number;
+  publication_year: string;
 
   @ApiProperty({
     description: 'The total number of copies owned by the library.',

@@ -1,6 +1,5 @@
 ## Modules List
 ```
-
 1️⃣ Books  
 2️⃣ Members  
 3️⃣ Loans (Borrow)  
@@ -10,7 +9,14 @@
 7️⃣ Reservations  
 8️⃣ Authentication + Roles  
 9️⃣ Reports / Dashboard analytics  
+```
 
+```
+* class-transformer
+* class-validator
+* uuid
+* typeorm
+* pg
 ```
 
 
