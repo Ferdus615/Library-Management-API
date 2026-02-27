@@ -40,16 +40,6 @@ export class BookService {
       throw new BadRequestException(`No book data provided!`);
     }
 
-    // const categoryIds = [
-    //   ...new Set(payload.map((x) => x.category_id).filter(Boolean)),
-    // ];
-
-    // const categories = categoryIds.length
-    //   ? await this.categoryRepository.find({ where: { id: In(categoryIds) } })
-    //   : [];
-
-    // const categoryMap = new Map(categories.map(category) => [category.id, category])
-
     const addBook = payload.map((book) =>
       this.bookRepository.create({
         ...book,

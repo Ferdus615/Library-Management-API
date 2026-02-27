@@ -47,8 +47,8 @@ export class CreateBookDto {
     minimum: 1900, // Explicitly set for Swagger UI
   })
   @IsNotEmpty()
-  @IsString()
-  publication_year: string;
+  @IsNumber()
+  publication_year: number;
 
   @ApiProperty({
     description: 'The total number of copies available (must be 1 or more)',
@@ -73,7 +73,7 @@ export class CreateBookDto {
     description: 'The cover image of the book',
     example: 'https://example.com/cover.jpg',
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  cover_image: string;
+  cover_image?: string;
 }
