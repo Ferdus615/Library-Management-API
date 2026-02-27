@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BookService } from './book.service';
@@ -18,6 +19,8 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { MemberStatus } from 'src/user/enum/member.enum';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Public } from 'src/auth/decorators/public.decorators';
+import { BookQueryDto } from './dto/bookQueryDto.dto';
+import { ResponseReservationDto } from 'src/reservation/dto/responseReservationDto.dto';
 
 @ApiTags('books')
 @Controller('book')
@@ -47,17 +50,17 @@ export class BookController {
   @Public()
   @Get()
   @ApiOperation({
-    summary: 'Retrieve all books',
+    summary: 'Retrieve all books with optional search, filter, and pagination',
     description:
-      'Returns a list of all books available in the system including their current availability status.',
+      'Returns a list of books available in the system. Supports searching by title, author, or ISBN, filtering by category, and pagination.',
   })
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved the list of books.',
     type: [ResponseBookDto],
   })
-  async findAllBook(): Promise<ResponseBookDto[]> {
-    return await this.bookService.findAllBook();
+  async findAllBook(@Query() query: BookQueryDto): Promise<ResponseBookDto[]> {
+    return await this.bookService.findAllBook(query);
   }
 
   @Public()
@@ -111,6 +114,35 @@ export class BookController {
   })
   async findBookLoans(@Param('id') id: string): Promise<ResponseLoanDto[]> {
     return await this.bookService.findBookLoans(id);
+  }
+
+  @Roles(MemberStatus.ADMIN)
+  @UseGuards(RolesGuard)
+  @Get('reservations/:id')
+  @ApiOperation({
+    summary: 'Retrieve reservation history for a specific book',
+    description:
+      'Returns a list of all historical and active reservations associated with a specific book ID, including member details.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'The unique UUID of the book',
+    format: 'uuid',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef0123456789',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved the reservation history.',
+    type: [ResponseReservationDto],
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Book not found.',
+  })
+  async findBookReservations(
+    @Param('id') id: string,
+  ): Promise<ResponseReservationDto[]> {
+    return await this.bookService.findBookReservations(id);
   }
 
   @Roles(MemberStatus.ADMIN)

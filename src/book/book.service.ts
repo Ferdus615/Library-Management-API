@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Book } from './entities/book.entity';
 import { CreateBookDto } from './dto/createBookDto.dto';
@@ -13,6 +13,9 @@ import { ResponseBookDto } from './dto/responseBookDto.dto';
 import { Loan } from 'src/loan/entities/loan.entity';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 import { Category } from 'src/category/entities/category.entity';
+import { BookQueryDto } from './dto/bookQueryDto.dto';
+import { Reservation } from 'src/reservation/entities/reservation.entity';
+import { ResponseReservationDto } from 'src/reservation/dto/responseReservationDto.dto';
 
 @Injectable()
 export class BookService {
@@ -21,6 +24,8 @@ export class BookService {
     @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(Reservation)
+    private readonly reservationRepository: Repository<Reservation>,
   ) {}
 
   private isValidSupabaseUrl(url: string): boolean {
@@ -40,32 +45,71 @@ export class BookService {
       throw new BadRequestException(`No book data provided!`);
     }
 
-    const addBook = payload.map((book) =>
-      this.bookRepository.create({
-        ...book,
-        available_copies: book.total_copies,
-      }),
-    );
+    const booksToSave: Book[] = [];
 
-    const savedBook = await this.bookRepository.save(addBook);
-    const response = savedBook.map((book) =>
+    for (const bookDto of payload) {
+      const book = this.bookRepository.create({
+        ...bookDto,
+        available_copies: bookDto.total_copies,
+      });
+
+      if (bookDto.category_id) {
+        const category = await this.categoryRepository.findOne({
+          where: { id: bookDto.category_id },
+        });
+        if (!category) {
+          throw new NotFoundException(
+            `Category with ID ${bookDto.category_id} not found`,
+          );
+        }
+        book.category = category;
+      }
+
+      booksToSave.push(book);
+    }
+
+    const savedBooks = await this.bookRepository.save(booksToSave);
+    const response = savedBooks.map((book) =>
       plainToInstance(ResponseBookDto, book, { excludeExtraneousValues: true }),
     );
 
     return Array.isArray(createBookDto) ? response : response[0];
   }
 
-  async findAllBook(): Promise<ResponseBookDto[]> {
+  async findAllBook(query?: BookQueryDto): Promise<ResponseBookDto[]> {
+    const {
+      title,
+      author,
+      isbn,
+      categoryId,
+      page = 1,
+      limit = 10,
+    } = query || {};
+
+    const where: FindOptionsWhere<Book> = {};
+    if (title) where.title = ILike(`%${title}%`);
+    if (author) where.author = ILike(`%${author}%`);
+    if (isbn) where.isbn = isbn;
+    if (categoryId) where.category = { id: categoryId };
+
     const books = await this.bookRepository.find({
+      where,
       relations: ['category'],
+      take: limit,
+      skip: (page - 1) * limit,
+      order: { title: 'ASC' },
     });
+
     return books.map((book) =>
       plainToInstance(ResponseBookDto, book, { excludeExtraneousValues: true }),
     );
   }
 
   async findOneBook(id: string): Promise<ResponseBookDto> {
-    const book = await this.bookRepository.findOne({ where: { id } });
+    const book = await this.bookRepository.findOne({
+      where: { id },
+      relations: ['category'],
+    });
     if (!book) throw new NotFoundException(`Book with ID-${id} not found`);
 
     return plainToInstance(ResponseBookDto, book, {
@@ -84,6 +128,21 @@ export class BookService {
     });
 
     return plainToInstance(ResponseLoanDto, loans, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async findBookReservations(id: string): Promise<ResponseReservationDto[]> {
+    const book = await this.bookRepository.findOne({ where: { id } });
+    if (!book) throw new NotFoundException(`Book with ID ${id} not found`);
+
+    const reservations = await this.reservationRepository.find({
+      where: { book: { id } },
+      relations: ['user'],
+      order: { created_at: 'DESC' },
+    });
+
+    return plainToInstance(ResponseReservationDto, reservations, {
       excludeExtraneousValues: true,
     });
   }
@@ -147,19 +206,6 @@ export class BookService {
 
         book.category = category;
       }
-    }
-
-    // ─────────────────────────
-    // Handle scalar updates
-    // ─────────────────────────
-
-    // Object.assign(book, dto); // refactor to use domain specific validation
-    if (dto.title !== undefined) {
-      book.title = dto.title;
-    }
-
-    if (dto.author !== undefined) {
-      book.author = dto.author;
     }
 
     const savedBook = await this.bookRepository.save(book);
