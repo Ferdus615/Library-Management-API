@@ -138,7 +138,7 @@ export class BookService {
 
     const reservations = await this.reservationRepository.find({
       where: { book: { id } },
-      relations: ['user'],
+      relations: ['reservations'],
       order: { created_at: 'DESC' },
     });
 
