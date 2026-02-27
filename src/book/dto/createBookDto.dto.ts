@@ -47,8 +47,8 @@ export class CreateBookDto {
     minimum: 1900, // Explicitly set for Swagger UI
   })
   @IsNotEmpty()
-  @IsNumber()
-  publication_year: number;
+  @IsString()
+  publication_year: string;
 
   @ApiProperty({
     description: 'The total number of copies available (must be 1 or more)',

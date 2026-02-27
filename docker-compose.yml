@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ferdus615/lms-api
+    image: ferdus615/lms-backend
     container_name: lms-backend
     ports:
       - '3000:3000'
