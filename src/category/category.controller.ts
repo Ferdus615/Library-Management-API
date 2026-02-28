@@ -15,29 +15,22 @@ import {
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/createCategoryDto.dto';
 import { UpdateCategoryDto } from './dto/updateCategoryDto.dto';
-import { plainToInstance } from 'class-transformer';
 import { ResponseCategoryDto } from './dto/responseCategoryDto.dto';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BulkCategoriesDto } from './dto/createBulkCategoryDto.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { MemberStatus } from 'src/user/enum/member.enum';
+import { Public } from 'src/auth/decorators/public.decorators';
 
 @ApiTags('Categories')
-@ApiBearerAuth()
-@Roles(MemberStatus.ADMIN)
-@UseGuards(RolesGuard)
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+  @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Create a new book category',
@@ -56,6 +49,8 @@ export class CategoryController {
   }
 
   @Post('/bulk')
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+  @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Bulk create categories',
@@ -79,13 +74,15 @@ export class CategoryController {
   }
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'List all categories' })
   @ApiResponse({ status: 200, type: [ResponseCategoryDto] })
-  async findAll(): Promise<ResponseCategoryDto[]> {
+  async findAllCategory(): Promise<ResponseCategoryDto[]> {
     return await this.categoryService.findAllCategory();
   }
 
   @Get(':id')
+  @Public()
   @ApiOperation({ summary: 'Get category by ID' })
   @ApiParam({ name: 'id', format: 'uuid', example: 'e123-f456-7890' })
   @ApiResponse({ status: 200, type: ResponseCategoryDto })
@@ -95,6 +92,8 @@ export class CategoryController {
   }
 
   @Patch(':id')
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Update a category' })
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiResponse({ status: 200, type: ResponseCategoryDto })
@@ -107,6 +106,8 @@ export class CategoryController {
   }
 
   @Delete(':id')
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Delete a category' })
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Category deleted.' })

@@ -99,7 +99,7 @@ export class UserController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
   @Get(':id')
   @ApiOperation({
     summary: 'Get user details',

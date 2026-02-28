@@ -73,7 +73,7 @@ export class ReservationController {
     return await this.reservationService.findOneReservation(id);
   }
 
-  @Patch(':id')
+  @Patch('/cancel/:id')
   @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
   @ApiOperation({
     summary: 'Cancel a reservation',
@@ -83,12 +83,11 @@ export class ReservationController {
   @ApiResponse({
     status: 200,
     description: 'Reservation cancelled.',
-    type: ResponseReservationDto,
   })
   @ApiResponse({ status: 404, description: 'Reservation not found.' })
   async cancelReservation(
     @Param('id') id: string,
-  ): Promise<ResponseReservationDto> {
+  ): Promise<{ message: string }> {
     return await this.reservationService.cancelReservation(id);
   }
 }

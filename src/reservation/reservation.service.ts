@@ -101,7 +101,7 @@ export class ReservationService {
     });
   }
 
-  async cancelReservation(id: string): Promise<ResponseReservationDto> {
+  async cancelReservation(id: string): Promise<{ message: string }> {
     const findReservation = await this.reservationRepository.findOne({
       where: { id },
     });
@@ -120,8 +120,7 @@ export class ReservationService {
       findReservation.status = ReservationStatus.CANCELLED;
     }
 
-    const cancelReservation =
-      await this.reservationRepository.save(findReservation);
+    await this.reservationRepository.save(findReservation);
 
     await this.notificationService.notify(
       findReservation.user,
@@ -131,9 +130,7 @@ export class ReservationService {
       },
     );
 
-    return plainToInstance(ResponseReservationDto, cancelReservation, {
-      excludeExtraneousValues: true,
-    });
+    return { message: 'Reservation cancelled successfully' };
   }
 
   async promoteReservation(book: Book): Promise<void> {

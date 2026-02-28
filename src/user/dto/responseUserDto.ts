@@ -59,4 +59,11 @@ export class ResponseUserDto {
   })
   @Expose()
   is_active: boolean;
+
+  @ApiProperty({
+    description: 'The date and time when the user was created.',
+    example: '2022-01-01T00:00:00.000Z',
+  })
+  @Expose()
+  created_at: Date;
 }
