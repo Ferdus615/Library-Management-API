@@ -70,6 +70,22 @@ export class UserController {
   }
 
   @UseGuards(RolesGuard)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Get user details',
+    description: 'Fetch any one users full details.',
+  })
+  @ApiParam({ name: 'id', description: 'User UUID', format: 'uuid' })
+  @ApiResponse({ status: 200, type: ResponseUserDto })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async findOneUser(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<ResponseUserDto> {
+    return await this.userService.findOneUser(id);
+  }
+
+  @UseGuards(RolesGuard)
   @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @Get('names')
   @ApiOperation({ summary: 'Search users by name' })
@@ -99,22 +115,6 @@ export class UserController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
-  @Get(':id')
-  @ApiOperation({
-    summary: 'Get user details',
-    description: 'Fetch any one users full details.',
-  })
-  @ApiParam({ name: 'id', description: 'User UUID', format: 'uuid' })
-  @ApiResponse({ status: 200, type: ResponseUserDto })
-  @ApiResponse({ status: 404, description: 'User not found.' })
-  async findOneUser(
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<ResponseUserDto> {
-    return await this.userService.findOneUser(id);
-  }
-
-  @UseGuards(RolesGuard)
   @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @Get('email/:email')
   @ApiOperation({
@@ -133,7 +133,7 @@ export class UserController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
   @Get('loans/:id')
   @ApiOperation({
     summary: 'Find user loan(s)',

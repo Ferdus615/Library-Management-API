@@ -11,12 +11,15 @@ import { ResponseReservationDto } from 'src/reservation/dto/responseReservationD
 import { Reservation } from 'src/reservation/entities/reservation.entity';
 import { User } from './entities/user.entity';
 import { Loan } from 'src/loan/entities/loan.entity';
+import { ResponseFineDto } from 'src/fine/dto/responseFineDto.dto';
+import { Fine } from 'src/fine/entities/fine.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
+    @InjectRepository(Fine) private readonly fineRepositoty: Repository<Fine>,
     @InjectRepository(Reservation)
     private readonly reservationRepository: Repository<Reservation>,
   ) {}
@@ -117,6 +120,23 @@ export class UserService {
 
     return findReservations.map((reservation) =>
       plainToInstance(ResponseReservationDto, reservation, {
+        excludeExtraneousValues: true,
+      }),
+    );
+  }
+
+  async findUserFine(id: string): Promise<ResponseFineDto[]> {
+    const findUser = await this.userRepository.findOne({ where: { id } });
+    if (!findUser) throw new NotFoundException(`User with id:${id} not found!`);
+
+    const findFines = await this.fineRepositoty.find({
+      where: { user: { id } },
+      relations: ['loan', 'loan.book'],
+      order: { created_at: 'DESC' },
+    });
+
+    return findFines.map((fine) =>
+      plainToInstance(ResponseFineDto, fine, {
         excludeExtraneousValues: true,
       }),
     );
