@@ -27,6 +27,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { MemberStatus } from './enum/member.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Public } from 'src/auth/decorators/public.decorators';
+import { ResponseFineDto } from 'src/fine/dto/responseFineDto.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -168,6 +169,24 @@ export class UserController {
     @Param('id') id: string,
   ): Promise<ResponseReservationDto[]> {
     return await this.userService.findUserReservations(id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
+  @Get('fines/:id')
+  @ApiOperation({
+    summary: 'Find user fine(s)',
+    description: "Fetch a user's all fine information.",
+  })
+  @ApiParam({ name: 'id', example: 'The UUID of the user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Fines found successfully',
+    type: [ResponseFineDto],
+  })
+  @ApiResponse({ status: 404, description: 'Fines not found' })
+  async findUserFine(@Param('id') id: string): Promise<ResponseFineDto[]> {
+    return await this.userService.findUserFine(id);
   }
 
   @UseGuards(RolesGuard)
