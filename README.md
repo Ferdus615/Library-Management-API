@@ -1,174 +1,130 @@
-## Modules List
-```
-1️⃣ Books  
-2️⃣ Members  
-3️⃣ Loans (Borrow)  
-4️⃣ Returns  
-5️⃣ Fines  
-6️⃣ Categories  
-7️⃣ Reservations  
-8️⃣ Authentication + Roles  
-9️⃣ Reports / Dashboard analytics  
-```
+# Library Management System (LMS) API
 
-```
-* class-transformer
-* class-validator
-* uuid
-* typeorm
-* pg
-```
+A robust, scalable backend service for managing library operations, built with [NestJS](https://nestjs.com/), [TypeORM](https://typeorm.io/), and [PostgreSQL](https://www.postgresql.org/).
 
+## 🚀 Overview
+
+This API provides a comprehensive solution for libraries to manage books, members, loans, reservations, and fines. It features a Role-Based Access Control (RBAC) system and integrates with Supabase for cloud storage.
+
+### Key Modules
+
+- **Authentication**: JWT-based secure login and registration.
+- **Users**: Manage members, librarians, and admins.
+- **Books**: Complete catalog management with search and filtering.
+- **Loans**: Track book borrowings and returns.
+- **Reservations**: Waitlist system for unavailable books.
+- **Fines**: Automated and manual fine management.
+- **Dashboard**: Analytics and overview for both admins and members.
+- **Notifications**: System-wide update tracking.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: NestJS (v10+)
+- **Language**: TypeScript
+- **Database**: PostgreSQL (hosted on Neon)
+- **ORM**: TypeORM
+- **Authentication**: Passport.js + JWT
+- **Storage**: Supabase (for book images/files)
+- **Documentation**: Swagger/OpenAPI
+- **Validation**: Class-validator & Class-transformer
+
+---
+
+## ⚙️ Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+- A PostgreSQL database instance
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/Ferdus615/Library-Management-API.git
+   cd lms-api
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env` file in the root directory and configure the following:
+   ```env
+   PORT=3000
+   DATABASE_URL=your_postgresql_url
+   JWT_SECRET=your_jwt_secret
+   SUPABASE_BUCKET_URL=your_supabase_storage_url
+   ```
+
+### Running the App
 
 ```bash
+# Development mode
+npm run start:dev
+
+# Production mode
+npm run start:prod
+```
+
+---
+
+## 📖 API Documentation
+
+The API comes with built-in Swagger documentation. Once the server is running, you can access it at:
+`http://localhost:3000/api/docs`
+
+### Major Endpoints Summary
+
+| Module          | Method | Endpoint             | Access          | Description                           |
+| :-------------- | :----- | :------------------- | :-------------- | :------------------------------------ |
+| **Auth**        | POST   | `/auth/login`        | Public          | Authenticate and get JWT.             |
+| **User**        | POST   | `/user`              | Public          | Register a new member.                |
+|                 | GET    | `/user`              | Admin/Librarian | List all users.                       |
+|                 | GET    | `/user/:id`          | Member/Staff    | Get detailed user info.               |
+| **Book**        | GET    | `/book`              | Public          | List books with search/filters.       |
+|                 | POST   | `/book`              | Admin           | Create a new book record.             |
+| **Loan**        | POST   | `/loan`              | Admin/Librarian | Issue a new book loan.                |
+|                 | GET    | `/loan`              | Admin/Librarian | List all loan history.                |
+| **Reservation** | POST   | `/reservation`       | All             | Reserve a currently unavailable book. |
+| **Fine**        | GET    | `/fine/user/:userId` | All             | View fine history for a user.         |
+|                 | POST   | `/fine/pay/:id`      | All             | Mark a fine as paid.                  |
+| **Dashboard**   | GET    | `/dashboard/admin`   | Admin/Librarian | Get statistics overview.              |
+
+---
+
+## 🔐 Roles & Permissions
+
+- **ADMIN**: Full system access (Books, Users, Loans, etc.)
+- **LIBRARIAN**: Manage books, loans, and reservations.
+- **MEMBER**: Search books, view personal history, and make reservations.
+
+---
+
+## 📁 Project Structure
+
+```text
 src/
-│
-├── app.module.ts
-├── main.ts
-│
-├── config/                 # Environment & DB configs
-│   └── ormconfig.ts
-│
-├── common/                 # Reusable utilities & filters
-│   ├── dto/
-│   ├── guards/
-│   ├── interceptors/
-│   └── decorators/
-│
-├── modules/
-│   ├── users/              # Users & roles (students, librarians)
-│   │   ├── users.module.ts
-│   │   ├── users.service.ts
-│   │   ├── users.controller.ts
-│   │   └── user.entity.ts
-│   │
-│   ├── auth/               # JWT auth logic
-│   │   ├── auth.module.ts
-│   │   ├── auth.service.ts
-│   │   ├── auth.controller.ts
-│   │   ├── jwt.strategy.ts
-│   │   └── local.strategy.ts
-│   │
-│   ├── books/              # Books and related info
-│   │   ├── books.module.ts
-│   │   ├── books.service.ts
-│   │   ├── books.controller.ts
-│   │   └── book.entity.ts
-│   │
-│   ├── borrow/             # Borrow / return system
-│   │   ├── borrow.module.ts
-│   │   ├── borrow.service.ts
-│   │   ├── borrow.controller.ts
-│   │   └── borrow.entity.ts
-│   │
-│   └── categories/         # Optional - book categories
-│       ├── categories.module.ts
-│       ├── categories.service.ts
-│       ├── categories.controller.ts
-│       └── category.entity.ts
-│
-└── utils/
-    └── helpers.ts          # Common helper functions
-
+├── auth/           # Authentication logic & JWT strategies
+├── book/           # Book management & search
+├── user/           # User profiles & role management
+├── loan/           # Borrowing & returning system
+├── fine/           # Fine calculation & payment tracking
+├── reservation/    # Book waitlisting
+├── dashboard/      # Admin & Member analytics
+├── common/         # Global guards, filters, and decorators
+├── config/         # Environment & ORM settings
+└── main.ts         # Application entry point
 ```
 
+---
 
+## 📜 License
 
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ npm install
-```
-
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is [MIT licensed](LICENSE).
