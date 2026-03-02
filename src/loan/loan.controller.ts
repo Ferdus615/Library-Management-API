@@ -12,25 +12,18 @@ import { LoanService } from './loan.service';
 import { CreateLoanDto } from './dto/createLoanDto.dto';
 import { ResponseLoanDto } from './dto/responseLoanDto.dto';
 import { UpdateLoanDto } from './dto/updateLoanDto';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { MemberStatus } from 'src/user/enum/member.enum';
 @ApiTags('Loans')
-@ApiBearerAuth()
-@Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
-@UseGuards(RolesGuard)
 @Controller('loan')
 export class LoanController {
   constructor(private readonly loanService: LoanService) {}
 
   @Post()
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
+  @UseGuards(RolesGuard)
   @ApiOperation({
     summary: 'Issue a new book loan',
     description:
@@ -42,6 +35,8 @@ export class LoanController {
   }
 
   @Get()
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+  @UseGuards(RolesGuard)
   @ApiOperation({
     summary: 'List all loans',
     description: 'Retrieves a history of all loans (active and returned).',
@@ -52,6 +47,8 @@ export class LoanController {
   }
 
   @Get('/:id')
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Get loan details by ID' })
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiResponse({ status: 200, type: ResponseLoanDto })
@@ -60,6 +57,8 @@ export class LoanController {
   }
 
   @Patch('/:id')
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+  @UseGuards(RolesGuard)
   @ApiOperation({
     summary: 'Update loan status or return date',
     description:
@@ -74,6 +73,8 @@ export class LoanController {
   }
 
   @Delete('/:id')
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Hard delete a loan record' })
   @ApiResponse({ status: 200, description: 'Loan successfully deleted.' })
   async deleteLoan(@Param('id') id: string) {
