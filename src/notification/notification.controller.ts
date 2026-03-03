@@ -21,11 +21,11 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
-  @Get()
+  @Get(':id')
   @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
   @ApiOperation({ summary: 'Get all notifications for the current user' })
-  async findAll(@Req() req) {
-    return await this.notificationService.findAllByUser(req.user.id);
+  async findAll(@Param('id') id: string) {
+    return await this.notificationService.findAllByUser(id);
   }
 
   @Patch(':id/read')

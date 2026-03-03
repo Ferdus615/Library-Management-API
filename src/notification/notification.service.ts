@@ -7,10 +7,11 @@ import { NotificationType } from './enum/notificatio.enum';
 
 @Injectable()
 export class NotificationService {
-  userRepository: any;
   constructor(
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async notify(
@@ -31,14 +32,20 @@ export class NotificationService {
     await this.notificationRepository.save(notification);
   }
 
-  async findAllByUser(userId: string) {
+  async findAllByUser(id: string) {
     const findUser = await this.userRepository.findOne({
-      where: { id: userId },
+      where: { id },
     });
-    return await this.notificationRepository.find({
-      where: { user: findUser.id },
+
+    if (!findUser) {
+      throw new Error('User not found');
+    }
+    const notifications = await this.notificationRepository.find({
+      where: { user: { id } },
       order: { created_at: 'DESC' },
     });
+
+    return notifications;
   }
 
   async markAsRead(id: string, userId: string) {
