@@ -7,6 +7,7 @@ import { NotificationType } from './enum/notificatio.enum';
 
 @Injectable()
 export class NotificationService {
+  userRepository: any;
   constructor(
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
@@ -28,6 +29,41 @@ export class NotificationService {
     console.log(`Notification sent: ${notification}`);
 
     await this.notificationRepository.save(notification);
+  }
+
+  async findAllByUser(userId: string) {
+    const findUser = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    return await this.notificationRepository.find({
+      where: { user: findUser.id },
+      order: { created_at: 'DESC' },
+    });
+  }
+
+  async markAsRead(id: string, userId: string) {
+    const notification = await this.notificationRepository.findOne({
+      where: { id, user: { id: userId } },
+    });
+
+    if (!notification) {
+      throw new Error('Notification not found');
+    }
+
+    notification.is_read = true;
+    return await this.notificationRepository.save(notification);
+  }
+
+  async remove(id: string, userId: string) {
+    const notification = await this.notificationRepository.findOne({
+      where: { id, user: { id: userId } },
+    });
+
+    if (!notification) {
+      throw new Error('Notification not found');
+    }
+
+    return await this.notificationRepository.remove(notification);
   }
 
   async buildMessage(type: NotificationType, payload: Record<string, any>) {
