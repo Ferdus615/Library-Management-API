@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { NotificationType } from './enum/notificatio.enum';
+import { plainToClass, plainToInstance } from 'class-transformer';
+import { ResponseNotificationDto } from './dto/responseNotificationDto.dto';
 
 @Injectable()
 export class NotificationService {
@@ -32,20 +34,16 @@ export class NotificationService {
     await this.notificationRepository.save(notification);
   }
 
-  async findAllByUser(id: string) {
-    const findUser = await this.userRepository.findOne({
-      where: { id },
-    });
-
-    if (!findUser) {
-      throw new Error('User not found');
-    }
+  async findAllByUser(id: string): Promise<ResponseNotificationDto[]> {
     const notifications = await this.notificationRepository.find({
       where: { user: { id } },
       order: { created_at: 'DESC' },
+      take: 1,
     });
 
-    return notifications;
+    return plainToInstance(ResponseNotificationDto, notifications, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async markAsRead(id: string, userId: string) {
