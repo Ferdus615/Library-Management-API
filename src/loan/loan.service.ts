@@ -102,7 +102,7 @@ export class LoanService {
   async updateLoan(id: string, dto: UpdateLoanDto): Promise<ResponseLoanDto> {
     const findLoan = await this.loanRepository.findOne({
       where: { id },
-      relations: ['book'],
+      relations: ['book', 'user'],
     });
     if (!findLoan) {
       throw new NotFoundException(`No such loan record found!`);

@@ -104,6 +104,7 @@ export class ReservationService {
   async cancelReservation(id: string): Promise<{ message: string }> {
     const findReservation = await this.reservationRepository.findOne({
       where: { id },
+      relations: ['user', 'book'],
     });
     if (!findReservation) throw new NotFoundException(`Reservation not found!`);
 
@@ -141,6 +142,7 @@ export class ReservationService {
         book: { id: book.id },
         status: ReservationStatus.PENDING,
       },
+      relations: ['user', 'book'],
       order: { created_at: 'ASC' },
     });
 
