@@ -6,7 +6,6 @@ import { User } from 'src/user/entities/user.entity';
 import { NotificationType } from './enum/notificatio.enum';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { ResponseNotificationDto } from './dto/responseNotificationDto.dto';
-import { NotificationGateway } from './notification.gateway';
 
 @Injectable()
 export class NotificationService {
@@ -15,7 +14,6 @@ export class NotificationService {
     private readonly notificationRepository: Repository<Notification>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly notificationGateway: NotificationGateway,
   ) {}
 
   async notify(
@@ -32,17 +30,15 @@ export class NotificationService {
     });
 
     console.log(`Notification sent: ${notification}`);
-    const savedNotification =
-      await this.notificationRepository.save(notification);
 
-    // Emit notification via WebSocket
-    this.notificationGateway.sendNotificationToUser(user.id, savedNotification);
+    await this.notificationRepository.save(notification);
   }
 
   async findAllByUser(id: string): Promise<ResponseNotificationDto[]> {
     const notifications = await this.notificationRepository.find({
       where: { user: { id } },
       order: { created_at: 'DESC' },
+      take: 1,
     });
 
     return plainToInstance(ResponseNotificationDto, notifications, {

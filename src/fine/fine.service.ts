@@ -73,11 +73,7 @@ export class FineService {
   }
 
   async payFine(id: string, dto: PayFineDto): Promise<ResponseFineDto> {
-    const findFine = await this.fineRepository.findOne({
-      where: { id },
-      relations: ['user', 'loan', 'loan.book'],
-    });
-
+    const findFine = await this.fineRepository.findOne({ where: { id } });
     if (!findFine) throw new NotFoundException(`Fine not found!`);
 
     if (findFine.paid) throw new BadRequestException('Fine already paid!');
