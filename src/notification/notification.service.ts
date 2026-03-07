@@ -1,15 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { NotificationType } from './enum/notificatio.enum';
+import { plainToClass, plainToInstance } from 'class-transformer';
+import { ResponseNotificationDto } from './dto/responseNotificationDto.dto';
 
 @Injectable()
 export class NotificationService {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async notify(
@@ -28,6 +32,43 @@ export class NotificationService {
     console.log(`Notification sent: ${notification}`);
 
     await this.notificationRepository.save(notification);
+  }
+
+  async findAllByUser(id: string): Promise<ResponseNotificationDto[]> {
+    const notifications = await this.notificationRepository.find({
+      where: { user: { id } },
+      order: { created_at: 'DESC' },
+      take: 1,
+    });
+
+    return plainToInstance(ResponseNotificationDto, notifications, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async markAsRead(id: string, userId: string) {
+    const notification = await this.notificationRepository.findOne({
+      where: { id, user: { id: userId } },
+    });
+
+    if (!notification) {
+      throw new Error('Notification not found');
+    }
+
+    notification.is_read = true;
+    return await this.notificationRepository.save(notification);
+  }
+
+  async remove(id: string, userId: string) {
+    const notification = await this.notificationRepository.findOne({
+      where: { id, user: { id: userId } },
+    });
+
+    if (!notification) {
+      throw new Error('Notification not found');
+    }
+
+    return await this.notificationRepository.remove(notification);
   }
 
   async buildMessage(type: NotificationType, payload: Record<string, any>) {
