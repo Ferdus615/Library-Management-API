@@ -168,6 +168,19 @@ export class ReservationService {
     });
   }
 
+  async findReservationByBook(id: string): Promise<ResponseReservationDto[]> {
+    const findReservation = await this.reservationRepository.find({
+      where: { book: { id } },
+    });
+    if (!findReservation) throw new NotFoundException(`Reservation not found!`);
+
+    return findReservation.map((reservation) =>
+      plainToInstance(ResponseReservationDto, reservation, {
+        excludeExtraneousValues: true,
+      }),
+    );
+  }
+
   async promoteReservation(book: Book): Promise<void> {
     if (book.available_copies <= 0) return;
 
