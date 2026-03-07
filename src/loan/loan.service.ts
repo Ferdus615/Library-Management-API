@@ -2,6 +2,8 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
@@ -23,6 +25,7 @@ export class LoanService {
     @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Book) private readonly bookRepository: Repository<Book>,
+    @Inject(forwardRef(() => ReservationService))
     private readonly reservationService: ReservationService,
     private readonly notificationService: NotificationService,
   ) {}
