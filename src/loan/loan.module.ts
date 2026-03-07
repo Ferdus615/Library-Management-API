@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { LoanService } from './loan.service';
 import { LoanController } from './loan.controller';
 import { Loan } from './entities/loan.entity';
@@ -13,10 +13,11 @@ import { NotificationModule } from 'src/notification/notification.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Loan, User, Book, Reservation]),
-    ReservationModule,
+    forwardRef(() => ReservationModule),
     NotificationModule,
   ],
   controllers: [LoanController],
   providers: [LoanService, OverdueLoanCron],
+  exports: [LoanService],
 })
 export class LoanModule {}

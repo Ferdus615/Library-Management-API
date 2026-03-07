@@ -2,6 +2,8 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Book } from 'src/book/entities/book.entity';
@@ -14,6 +16,8 @@ import { ReservationStatus } from './enum/reservation.enum';
 import { plainToInstance } from 'class-transformer';
 import { NotificationType } from 'src/notification/enum/notificatio.enum';
 import { NotificationService } from 'src/notification/notification.service';
+import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
+import { LoanService } from 'src/loan/loan.service';
 
 @Injectable()
 export class ReservationService {
@@ -23,6 +27,8 @@ export class ReservationService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Book) private readonly bookRepository: Repository<Book>,
     private readonly notificationService: NotificationService,
+    @Inject(forwardRef(() => LoanService))
+    private readonly loanService: LoanService,
   ) {}
 
   async createReservation(
@@ -80,23 +86,23 @@ export class ReservationService {
     });
   }
 
-  async findAllReservatios(): Promise<ResponseReservationDto[]> {
-    const findReservations = await this.reservationRepository.find();
-
-    return findReservations.map((reservation) =>
-      plainToInstance(ResponseReservationDto, reservation, {
-        excludeExtraneousValues: true,
-      }),
-    );
-  }
-
-  async findOneReservation(id: string): Promise<ResponseReservationDto> {
+  async receiveReservation(id: string): Promise<ResponseLoanDto> {
     const findReservation = await this.reservationRepository.findOne({
       where: { id },
     });
-    if (!findReservation) throw new NotFoundException(`Reservation not found!`);
+    if (!findReservation) throw new NotFoundException('Reservation not found!');
 
-    return plainToInstance(ResponseReservationDto, findReservation, {
+    if (findReservation.status !== ReservationStatus.READY) {
+      throw new BadRequestException('Reservation is not ready for loan!');
+    }
+
+    const loan = await this.loanService.createLoan({
+      user_id: findReservation.user.id,
+      book_id: findReservation.book.id,
+      due_date: new Date(Date.now() + 14 + 24 + 60 + 60 + 1000),
+    });
+
+    return plainToInstance(ResponseLoanDto, loan, {
       excludeExtraneousValues: true,
     });
   }
@@ -106,6 +112,14 @@ export class ReservationService {
       where: { id },
     });
     if (!findReservation) throw new NotFoundException(`Reservation not found!`);
+
+    if (findReservation.status === ReservationStatus.CANCELLED) {
+      throw new BadRequestException('Reservation has already been cancelled!');
+    }
+
+    if (findReservation.status === ReservationStatus.EXPIRED) {
+      throw new BadRequestException('Reservation has expired!');
+    }
 
     if (findReservation.status === ReservationStatus.PENDING) {
       findReservation.status = ReservationStatus.CANCELLED;
@@ -131,6 +145,40 @@ export class ReservationService {
     );
 
     return { message: 'Reservation cancelled successfully' };
+  }
+
+  async findAllReservatios(): Promise<ResponseReservationDto[]> {
+    const findReservations = await this.reservationRepository.find();
+
+    return findReservations.map((reservation) =>
+      plainToInstance(ResponseReservationDto, reservation, {
+        excludeExtraneousValues: true,
+      }),
+    );
+  }
+
+  async findOneReservation(id: string): Promise<ResponseReservationDto> {
+    const findReservation = await this.reservationRepository.findOne({
+      where: { id },
+    });
+    if (!findReservation) throw new NotFoundException(`Reservation not found!`);
+
+    return plainToInstance(ResponseReservationDto, findReservation, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async findReservationByBook(id: string): Promise<ResponseReservationDto[]> {
+    const findReservation = await this.reservationRepository.find({
+      where: { book: { id } },
+    });
+    if (!findReservation) throw new NotFoundException(`Reservation not found!`);
+
+    return findReservation.map((reservation) =>
+      plainToInstance(ResponseReservationDto, reservation, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   async promoteReservation(book: Book): Promise<void> {

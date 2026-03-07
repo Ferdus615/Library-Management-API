@@ -18,6 +18,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { MemberStatus } from 'src/user/enum/member.enum';
 import { UseGuards } from '@nestjs/common';
 import { RolesGuard } from 'src/common/guards/roles.guard';
+import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 
 @ApiTags('Reservations')
 @UseGuards(RolesGuard)
@@ -50,10 +51,28 @@ export class ReservationController {
     return await this.reservationService.createReservation(dto);
   }
 
+  @Post('/receive/:id')
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+  @ApiOperation({
+    summary: 'Receive a reservation for a book',
+    description: 'Creates a loan from a reservation.',
+  })
+  @ApiParam({ name: 'id', description: 'Reservation UUID', format: 'uuid' })
+  @ApiResponse({
+    status: 201,
+    description: 'Reservation received successfully.',
+    type: ResponseLoanDto,
+  })
+  @ApiResponse({ status: 404, description: 'Reservation not found.' })
+  @ApiResponse({ status: 400, description: 'Reservation not ready for loan.' })
+  async receiveReservation(@Param('id') id: string): Promise<ResponseLoanDto> {
+    return await this.reservationService.receiveReservation(id);
+  }
+
   @Get()
   @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @ApiOperation({
-    summary: 'Get all reservations',
+    summary: 'Get all reservations for books',
     description: 'Returns a complete list of all reservations in the system.',
   })
   @ApiResponse({ status: 200, type: [ResponseReservationDto] })
@@ -63,7 +82,10 @@ export class ReservationController {
 
   @Get(':id')
   @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
-  @ApiOperation({ summary: 'Get reservation details by ID' })
+  @ApiOperation({
+    summary: 'Get reservation details by ID',
+    description: 'Returns a reservation by ID.',
+  })
   @ApiParam({ name: 'id', description: 'Reservation UUID', format: 'uuid' })
   @ApiResponse({ status: 200, type: ResponseReservationDto })
   @ApiResponse({ status: 404, description: 'Reservation not found.' })
@@ -73,10 +95,25 @@ export class ReservationController {
     return await this.reservationService.findOneReservation(id);
   }
 
+  @Get('/book/:id')
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
+  @ApiOperation({
+    summary: 'Get reservation details by book ID',
+    description: 'Returns a reservation by book ID.',
+  })
+  @ApiParam({ name: 'id', description: 'Book UUID', format: 'uuid' })
+  @ApiResponse({ status: 200, type: ResponseReservationDto })
+  @ApiResponse({ status: 404, description: 'Reservation not found.' })
+  async findReservationByBook(
+    @Param('id') id: string,
+  ): Promise<ResponseReservationDto[]> {
+    return await this.reservationService.findReservationByBook(id);
+  }
+
   @Patch('/cancel/:id')
   @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)
   @ApiOperation({
-    summary: 'Cancel a reservation',
+    summary: 'Cancel a reservation for a book',
     description: 'Updates the reservation status to CANCELLED.',
   })
   @ApiParam({ name: 'id', description: 'Reservation UUID', format: 'uuid' })
