@@ -18,6 +18,7 @@ import { NotificationType } from 'src/notification/enum/notificatio.enum';
 import { NotificationService } from 'src/notification/notification.service';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 import { LoanService } from 'src/loan/loan.service';
+import { ReservationQueryDto } from './dto/reservationQueryDto.dto';
 
 @Injectable()
 export class ReservationService {
@@ -147,14 +148,39 @@ export class ReservationService {
     return { message: 'Reservation cancelled successfully' };
   }
 
-  async findAllReservatios(): Promise<ResponseReservationDto[]> {
-    const findReservations = await this.reservationRepository.find();
+  async findAllReservatios(query: ReservationQueryDto): Promise<{
+    data: ResponseReservationDto[];
+    total: number;
+  }> {
+    const { search, page = 1, limit = 10 } = query;
+    const skip = (page - 1) * limit;
 
-    return findReservations.map((reservation) =>
-      plainToInstance(ResponseReservationDto, reservation, {
-        excludeExtraneousValues: true,
-      }),
-    );
+    const queryBuilder = this.reservationRepository
+      .createQueryBuilder('reservation')
+      .leftJoinAndSelect('reservation.user', 'user')
+      .leftJoinAndSelect('reservation.book', 'book');
+
+    if (search) {
+      queryBuilder.where(
+        '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search OR book.title ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    const [reservations, total] = await queryBuilder
+      .orderBy('reservation.created_at', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: reservations.map((reservation) =>
+        plainToInstance(ResponseReservationDto, reservation, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+      total,
+    };
   }
 
   async findOneReservation(id: string): Promise<ResponseReservationDto> {

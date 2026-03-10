@@ -17,4 +17,8 @@ export class ResponseCategoryDto {
   @ApiProperty({ example: '2026-01-06T16:43:26.293Z' })
   @Expose()
   created_at: Date;
+
+  @ApiProperty({ example: 5 })
+  @Expose()
+  bookCount: number;
 }

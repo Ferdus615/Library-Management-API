@@ -10,8 +10,10 @@ import {
   UsePipes,
   ValidationPipe,
   HttpStatus,
+  Query,
   UseGuards,
 } from '@nestjs/common';
+
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/createCategoryDto.dto';
 import { UpdateCategoryDto } from './dto/updateCategoryDto.dto';
@@ -22,6 +24,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { MemberStatus } from 'src/user/enum/member.enum';
 import { Public } from 'src/auth/decorators/public.decorators';
+import { CategoryQueryDto } from './dto/categoryQueryDto.dto';
 
 @ApiTags('Categories')
 @Controller('category')
@@ -75,10 +78,28 @@ export class CategoryController {
 
   @Get()
   @Public()
-  @ApiOperation({ summary: 'List all categories' })
-  @ApiResponse({ status: 200, type: [ResponseCategoryDto] })
-  async findAllCategory(): Promise<ResponseCategoryDto[]> {
-    return await this.categoryService.findAllCategory();
+  @ApiOperation({
+    summary: 'List all categories',
+    description: 'Retrieves a paginated list of all categories.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of categories retrieved.',
+    schema: {
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/ResponseCategoryDto' },
+        },
+        total: { type: 'number' },
+      },
+    },
+  })
+  async findAllCategory(@Query() query: CategoryQueryDto): Promise<{
+    data: ResponseCategoryDto[];
+    total: number;
+  }> {
+    return await this.categoryService.findAllCategory(query);
   }
 
   @Get(':id')

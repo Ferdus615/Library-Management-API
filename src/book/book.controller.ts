@@ -57,9 +57,20 @@ export class BookController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved the list of books.',
-    type: [ResponseBookDto],
+    schema: {
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/ResponseBookDto' },
+        },
+        total: { type: 'number' },
+      },
+    },
   })
-  async findAllBook(@Query() query: BookQueryDto): Promise<ResponseBookDto[]> {
+  async findAllBook(@Query() query: BookQueryDto): Promise<{
+    data: ResponseBookDto[];
+    total: number;
+  }> {
     return await this.bookService.findAllBook(query);
   }
 

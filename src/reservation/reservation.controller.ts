@@ -7,9 +7,11 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+
 import { ReservationService } from './reservation.service';
 import { CreateReservationDto } from './dto/createReservationDto.dto';
 import { ResponseReservationDto } from './dto/responseReservationDto.dto';
@@ -19,6 +21,7 @@ import { MemberStatus } from 'src/user/enum/member.enum';
 import { UseGuards } from '@nestjs/common';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
+import { ReservationQueryDto } from './dto/reservationQueryDto.dto';
 
 @ApiTags('Reservations')
 @UseGuards(RolesGuard)
@@ -73,11 +76,26 @@ export class ReservationController {
   @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @ApiOperation({
     summary: 'Get all reservations for books',
-    description: 'Returns a complete list of all reservations in the system.',
+    description: 'Returns a paginated list of all reservations in the system.',
   })
-  @ApiResponse({ status: 200, type: [ResponseReservationDto] })
-  async findAllReservatios(): Promise<ResponseReservationDto[]> {
-    return await this.reservationService.findAllReservatios();
+  @ApiResponse({
+    status: 200,
+    description: 'List of reservations retrieved.',
+    schema: {
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/ResponseReservationDto' },
+        },
+        total: { type: 'number' },
+      },
+    },
+  })
+  async findAllReservatios(@Query() query: ReservationQueryDto): Promise<{
+    data: ResponseReservationDto[];
+    total: number;
+  }> {
+    return await this.reservationService.findAllReservatios(query);
   }
 
   @Get(':id')

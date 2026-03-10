@@ -11,6 +11,7 @@ import { In, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { ResponseCategoryDto } from './dto/responseCategoryDto.dto';
 import { BulkCategoriesDto } from './dto/createBulkCategoryDto.dto';
+import { CategoryQueryDto } from './dto/categoryQueryDto.dto';
 
 @Injectable()
 export class CategoryService {
@@ -71,14 +72,44 @@ export class CategoryService {
     });
   }
 
-  async findAllCategory(): Promise<ResponseCategoryDto[]> {
-    const findCategories = await this.categoryRepository.find();
+  async findAllCategory(query: CategoryQueryDto): Promise<{
+    data: ResponseCategoryDto[];
+    total: number;
+  }> {
+    const { search, page = 1, limit = 10 } = query;
+    const skip = (page - 1) * limit;
 
-    return findCategories.map((category) =>
-      plainToInstance(ResponseCategoryDto, category, {
-        excludeExtraneousValues: true,
+    const queryBuilder = this.categoryRepository
+      .createQueryBuilder('category')
+      .leftJoin('category.books', 'book')
+      .addSelect('COUNT(book.id)', 'category_bookCount')
+      .groupBy('category.id');
+
+    if (search) {
+      queryBuilder.where('category.name ILIKE :search', {
+        search: `%${search}%`,
+      });
+    }
+
+    const total = await queryBuilder.getCount();
+    const categories = await queryBuilder
+      .orderBy('category.name', 'ASC')
+      .offset(skip)
+      .limit(limit)
+      .getRawAndEntities();
+
+    return {
+      data: categories.entities.map((category, index) => {
+        const dto = plainToInstance(ResponseCategoryDto, category, {
+          excludeExtraneousValues: true,
+        });
+        // TypeORM returns raw values. We need to grab the count from raw.
+        const raw = categories.raw[index];
+        dto.bookCount = parseInt(raw.category_bookCount || '0', 10);
+        return dto;
       }),
-    );
+      total,
+    };
   }
 
   async findOneCategory(id: string): Promise<ResponseCategoryDto> {

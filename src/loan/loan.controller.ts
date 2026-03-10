@@ -6,12 +6,16 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
+
 import { LoanService } from './loan.service';
 import { CreateLoanDto } from './dto/createLoanDto.dto';
 import { ResponseLoanDto } from './dto/responseLoanDto.dto';
 import { UpdateLoanDto } from './dto/updateLoanDto';
+import { LoanQueryDto } from './dto/loanQueryDto.dto';
+
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -39,11 +43,27 @@ export class LoanController {
   @UseGuards(RolesGuard)
   @ApiOperation({
     summary: 'List all loans',
-    description: 'Retrieves a history of all loans (active and returned).',
+    description:
+      'Retrieves a paginated history of all loans (active and returned).',
   })
-  @ApiResponse({ status: 200, type: [ResponseLoanDto] })
-  async findAllLoan(): Promise<ResponseLoanDto[]> {
-    return await this.loanService.findAllLoan();
+  @ApiResponse({
+    status: 200,
+    description: 'List of loans retrieved.',
+    schema: {
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/ResponseLoanDto' },
+        },
+        total: { type: 'number' },
+      },
+    },
+  })
+  async findAllLoan(@Query() query: LoanQueryDto): Promise<{
+    data: ResponseLoanDto[];
+    total: number;
+  }> {
+    return await this.loanService.findAllLoan(query);
   }
 
   @Get('/:id')

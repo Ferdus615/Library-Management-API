@@ -15,6 +15,8 @@ import { CreateLoanDto } from './dto/createLoanDto.dto';
 import { ResponseLoanDto } from './dto/responseLoanDto.dto';
 import { UpdateLoanDto } from './dto/updateLoanDto';
 import { LoanStatus } from './enums/loanStatus.enum';
+import { LoanQueryDto } from './dto/loanQueryDto.dto';
+
 import { ReservationService } from 'src/reservation/reservation.service';
 import { NotificationType } from 'src/notification/enum/notificatio.enum';
 import { NotificationService } from 'src/notification/notification.service';
@@ -86,11 +88,39 @@ export class LoanService {
     });
   }
 
-  async findAllLoan(): Promise<ResponseLoanDto[]> {
-    const findLoans = await this.loanRepository.find();
-    return findLoans.map((loan) =>
-      plainToInstance(ResponseLoanDto, loan, { excludeExtraneousValues: true }),
-    );
+  async findAllLoan(query: LoanQueryDto): Promise<{
+    data: ResponseLoanDto[];
+    total: number;
+  }> {
+    const { search, page = 1, limit = 10 } = query;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.loanRepository
+      .createQueryBuilder('loan')
+      .leftJoinAndSelect('loan.user', 'user')
+      .leftJoinAndSelect('loan.book', 'book');
+
+    if (search) {
+      queryBuilder.where(
+        '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search OR book.title ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    const [loans, total] = await queryBuilder
+      .orderBy('loan.created_at', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: loans.map((loan) =>
+        plainToInstance(ResponseLoanDto, loan, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+      total,
+    };
   }
 
   async findOneLoan(id: string): Promise<ResponseLoanDto> {

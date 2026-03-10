@@ -76,7 +76,10 @@ export class BookService {
     return Array.isArray(createBookDto) ? response : response[0];
   }
 
-  async findAllBook(query?: BookQueryDto): Promise<ResponseBookDto[]> {
+  async findAllBook(query?: BookQueryDto): Promise<{
+    data: ResponseBookDto[];
+    total: number;
+  }> {
     const {
       title,
       author,
@@ -92,7 +95,7 @@ export class BookService {
     if (isbn) where.isbn = isbn;
     if (categoryId) where.category = { id: categoryId };
 
-    const books = await this.bookRepository.find({
+    const [books, total] = await this.bookRepository.findAndCount({
       where,
       relations: ['category'],
       take: limit,
@@ -100,9 +103,14 @@ export class BookService {
       order: { title: 'ASC' },
     });
 
-    return books.map((book) =>
-      plainToInstance(ResponseBookDto, book, { excludeExtraneousValues: true }),
-    );
+    return {
+      data: books.map((book) =>
+        plainToInstance(ResponseBookDto, book, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+      total,
+    };
   }
 
   async findOneBook(id: string): Promise<ResponseBookDto> {
