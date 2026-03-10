@@ -15,6 +15,7 @@ import { PayFineDto } from './dto/payFineDto.dto';
 import { LoanStatus } from 'src/loan/enums/loanStatus.enum';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/enum/notificatio.enum';
+import { FineQueryDto } from './dto/fineQueryDto.dto';
 
 @Injectable()
 export class FineService {
@@ -98,11 +99,73 @@ export class FineService {
     });
   }
 
-  async getAllFine(): Promise<ResponseFineDto[]> {
-    const findFines = await this.fineRepository.find();
-    return findFines.map((fine) =>
-      plainToInstance(ResponseFineDto, fine, { excludeExtraneousValues: true }),
-    );
+  async getAllFine(query: FineQueryDto): Promise<{
+    data: ResponseFineDto[];
+    total: number;
+    activeCount: number;
+    paidCount: number;
+  }> {
+    const { search, page = 1, limit = 10 } = query;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.fineRepository
+      .createQueryBuilder('fine')
+      .leftJoinAndSelect('fine.user', 'user')
+      .leftJoinAndSelect('fine.loan', 'loan')
+      .leftJoinAndSelect('loan.book', 'book');
+
+    if (search) {
+      queryBuilder.where(
+        '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search OR book.title ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    const [fines, total] = await queryBuilder
+      .orderBy('fine.created_at', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    // Get total counts for stats (unfiltered by pagination, but filtered by search)
+    const activeCount = await this.fineRepository
+      .createQueryBuilder('fine')
+      .leftJoin('fine.user', 'user')
+      .leftJoin('fine.loan', 'loan')
+      .leftJoin('loan.book', 'book')
+      .where('fine.paid = :paid', { paid: false })
+      .andWhere(
+        search
+          ? '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search OR book.title ILIKE :search)'
+          : '1=1',
+        { search: `%${search}%` },
+      )
+      .getCount();
+
+    const paidCount = await this.fineRepository
+      .createQueryBuilder('fine')
+      .leftJoin('fine.user', 'user')
+      .leftJoin('fine.loan', 'loan')
+      .leftJoin('loan.book', 'book')
+      .where('fine.paid = :paid', { paid: true })
+      .andWhere(
+        search
+          ? '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search OR book.title ILIKE :search)'
+          : '1=1',
+        { search: `%${search}%` },
+      )
+      .getCount();
+
+    return {
+      data: fines.map((fine) =>
+        plainToInstance(ResponseFineDto, fine, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+      total,
+      activeCount,
+      paidCount,
+    };
   }
 
   async getFineById(id: string): Promise<ResponseFineDto> {

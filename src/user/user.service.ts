@@ -13,6 +13,7 @@ import { User } from './entities/user.entity';
 import { Loan } from 'src/loan/entities/loan.entity';
 import { ResponseFineDto } from 'src/fine/dto/responseFineDto.dto';
 import { Fine } from 'src/fine/entities/fine.entity';
+import { UserQueryDto } from './dto/userQueryDto.dto';
 
 @Injectable()
 export class UserService {
@@ -38,11 +39,36 @@ export class UserService {
     });
   }
 
-  async findAllUser(): Promise<ResponseUserDto[]> {
-    const findUsers = await this.userRepository.find();
-    return findUsers.map((user) =>
-      plainToInstance(ResponseUserDto, user, { excludeExtraneousValues: true }),
-    );
+  async findAllUser(query: UserQueryDto): Promise<{
+    data: ResponseUserDto[];
+    total: number;
+  }> {
+    const { search, page = 1, limit = 10 } = query;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+
+    if (search) {
+      queryBuilder.where(
+        '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search OR user.phone ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    const [users, total] = await queryBuilder
+      .orderBy('user.created_at', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: users.map((user) =>
+        plainToInstance(ResponseUserDto, user, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+      total,
+    };
   }
 
   async findOneUser(id: string): Promise<ResponseUserDto> {

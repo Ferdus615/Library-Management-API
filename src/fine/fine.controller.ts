@@ -6,13 +6,17 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+
 import { FineService } from './fine.service';
 import { CreateFineDto } from './dto/createFineDto.dto';
 import { ResponseFineDto } from './dto/responseFineDto.dto';
+import { FineQueryDto } from './dto/fineQueryDto.dto';
 import { plainToInstance } from 'class-transformer';
+
 import { PayFineDto } from './dto/payFineDto.dto';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
@@ -73,15 +77,31 @@ export class FineController {
   @Get()
   @ApiOperation({
     summary: 'List all fines',
-    description: 'Returns a complete list of all fines in the library system.',
+    description:
+      'Returns a paginated list of all fines in the library system with optional search.',
   })
   @ApiResponse({
     status: 200,
     description: 'List of fines retrieved.',
-    type: [ResponseFineDto],
+    schema: {
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/ResponseFineDto' },
+        },
+        total: { type: 'number' },
+        activeCount: { type: 'number' },
+        paidCount: { type: 'number' },
+      },
+    },
   })
-  async getAllFine(): Promise<ResponseFineDto[]> {
-    return await this.fineService.getAllFine();
+  async getAllFine(@Query() query: FineQueryDto): Promise<{
+    data: ResponseFineDto[];
+    total: number;
+    activeCount: number;
+    paidCount: number;
+  }> {
+    return await this.fineService.getAllFine(query);
   }
 
   @Get(':id')

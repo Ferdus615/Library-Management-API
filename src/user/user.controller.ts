@@ -28,6 +28,7 @@ import { MemberStatus } from './enum/member.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Public } from 'src/auth/decorators/public.decorators';
 import { ResponseFineDto } from 'src/fine/dto/responseFineDto.dto';
+import { UserQueryDto } from './dto/userQueryDto.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -59,15 +60,26 @@ export class UserController {
   @Get()
   @ApiOperation({
     summary: 'Get all users',
-    description: 'Retrieves a list of all registered users.',
+    description: 'Retrieves a paginated list of all registered users.',
   })
   @ApiResponse({
     status: 200,
     description: 'List of users retrieved.',
-    type: [ResponseUserDto],
+    schema: {
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/ResponseUserDto' },
+        },
+        total: { type: 'number' },
+      },
+    },
   })
-  async findAllUser(): Promise<ResponseUserDto[]> {
-    return await this.userService.findAllUser();
+  async findAllUser(@Query() query: UserQueryDto): Promise<{
+    data: ResponseUserDto[];
+    total: number;
+  }> {
+    return await this.userService.findAllUser(query);
   }
 
   @UseGuards(RolesGuard)
