@@ -50,7 +50,7 @@ export class BookService {
     for (const bookDto of payload) {
       const book = this.bookRepository.create({
         ...bookDto,
-        available_copies: bookDto.total_copies,
+        available_copies: bookDto.total_copies - (bookDto.damaged_copies || 0),
       });
 
       if (bookDto.category_id) {
@@ -167,19 +167,24 @@ export class BookService {
     // ─────────────────────────
     if (dto.copies_added !== undefined) {
       const copiesAdded = Number(dto.copies_added);
-
       book.total_copies += copiesAdded;
       book.available_copies += copiesAdded;
-
       delete dto.copies_added;
+    }
+
+    if (dto.total_copies !== undefined) {
+      const newTotal = Number(dto.total_copies);
+      const diff = newTotal - book.total_copies;
+      book.total_copies = newTotal;
+      book.available_copies += diff;
+      delete dto.total_copies;
     }
 
     if (dto.damaged_copies !== undefined) {
       const newDamagedCopies = Number(dto.damaged_copies);
-
-      book.damaged_copies += newDamagedCopies;
-
-      book.available_copies -= newDamagedCopies;
+      const diff = newDamagedCopies - book.damaged_copies;
+      book.damaged_copies = newDamagedCopies;
+      book.available_copies -= diff;
 
       if (book.available_copies < 0) {
         book.available_copies = 0;

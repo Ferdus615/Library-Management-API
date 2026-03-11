@@ -29,4 +29,8 @@ export class ResponseNotificationDto {
   @ApiProperty({ type: Boolean, example: false })
   @Expose({ name: 'is_read' })
   read: boolean;
+
+  @ApiProperty({ type: Date })
+  @Expose()
+  created_at: Date;
 }

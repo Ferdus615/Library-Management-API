@@ -62,6 +62,17 @@ export class CreateBookDto {
   total_copies: number;
 
   @ApiProperty({
+    description: 'The number of damaged copies (must be 0 or more)',
+    example: 0,
+    type: Number,
+    minimum: 0,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  damaged_copies: number = 0;
+
+  @ApiProperty({
     description: 'The UUID of the category',
     example: 'a1b2c3d4-e5f6-7890-abcd-ef0123456789',
   })
