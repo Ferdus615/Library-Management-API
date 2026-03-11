@@ -27,6 +27,6 @@ export class ResponseNotificationDto {
   type: string;
 
   @ApiProperty({ type: Boolean, example: false })
-  @Expose()
+  @Expose({ name: 'is_read' })
   read: boolean;
 }

@@ -8,18 +8,27 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { MemberStatus } from 'src/user/enum/member.enum';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { NotificationQueryDto } from './dto/notificationQueryDto.dto';
 
 @ApiTags('Notification')
 @Controller('notification')
 @UseGuards(RolesGuard)
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
+
+  @Get()
+  @Roles(MemberStatus.ADMIN)
+  @ApiOperation({ summary: 'Get all notifications for admin' })
+  async findAllForAdmin(@Query() query: NotificationQueryDto) {
+    return await this.notificationService.findAll(query);
+  }
 
   @Get(':id')
   @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN, MemberStatus.MEMBER)

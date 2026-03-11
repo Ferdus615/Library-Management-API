@@ -6,6 +6,7 @@ import { User } from 'src/user/entities/user.entity';
 import { NotificationType } from './enum/notificatio.enum';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { ResponseNotificationDto } from './dto/responseNotificationDto.dto';
+import { NotificationQueryDto } from './dto/notificationQueryDto.dto';
 
 @Injectable()
 export class NotificationService {
@@ -37,13 +38,41 @@ export class NotificationService {
   async findAllByUser(id: string): Promise<ResponseNotificationDto[]> {
     const notifications = await this.notificationRepository.find({
       where: { user: { id } },
+      relations: ['user'],
       order: { created_at: 'DESC' },
-      take: 1,
     });
 
-    return plainToInstance(ResponseNotificationDto, notifications, {
-      excludeExtraneousValues: true,
-    });
+    return notifications.map((n) => ({
+      ...plainToInstance(ResponseNotificationDto, n, {
+        excludeExtraneousValues: true,
+      }),
+      user_id: n.user?.id,
+    }));
+  }
+
+  async findAll(query?: NotificationQueryDto): Promise<{
+    data: ResponseNotificationDto[];
+    total: number;
+  }> {
+    const { page = 1, limit = 10 } = query || {};
+
+    const [notifications, total] =
+      await this.notificationRepository.findAndCount({
+        relations: ['user'],
+        order: { created_at: 'DESC' },
+        take: limit,
+        skip: (page - 1) * limit,
+      });
+
+    return {
+      data: notifications.map((n) => ({
+        ...plainToInstance(ResponseNotificationDto, n, {
+          excludeExtraneousValues: true,
+        }),
+        user_id: n.user?.id,
+      })),
+      total,
+    };
   }
 
   async markAsRead(id: string, userId: string) {
