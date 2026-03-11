@@ -24,8 +24,20 @@ export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
   @Get()
-  @Roles(MemberStatus.ADMIN)
+  @Roles(MemberStatus.ADMIN, MemberStatus.LIBRARIAN)
   @ApiOperation({ summary: 'Get all notifications for admin' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of items per page',
+  })
   async findAllForAdmin(@Query() query: NotificationQueryDto) {
     return await this.notificationService.findAll(query);
   }
