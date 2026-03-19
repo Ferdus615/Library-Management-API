@@ -18,7 +18,7 @@ export class FineCron {
     private readonly notificationService: NotificationService,
   ) {}
 
-  @Cron(CronExpression.EVERY_12_HOURS)
+  @Cron(CronExpression.EVERY_HOUR)
   async AutoGenerateFines() {
     this.logger.log('Running 12-hour fine accural job....');
 
