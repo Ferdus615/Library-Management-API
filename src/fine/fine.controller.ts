@@ -15,7 +15,6 @@ import { FineService } from './fine.service';
 import { CreateFineDto } from './dto/createFineDto.dto';
 import { ResponseFineDto } from './dto/responseFineDto.dto';
 import { FineQueryDto } from './dto/fineQueryDto.dto';
-import { plainToInstance } from 'class-transformer';
 
 import { PayFineDto } from './dto/payFineDto.dto';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -92,6 +91,7 @@ export class FineController {
         total: { type: 'number' },
         activeCount: { type: 'number' },
         paidCount: { type: 'number' },
+        totalUnpaidAmount: { type: 'number' },
       },
     },
   })
@@ -100,6 +100,7 @@ export class FineController {
     total: number;
     activeCount: number;
     paidCount: number;
+    totalUnpaidAmount: number;
   }> {
     return await this.fineService.getAllFine(query);
   }
