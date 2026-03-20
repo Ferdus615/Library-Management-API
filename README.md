@@ -2,6 +2,8 @@
 
 A robust, scalable backend service for managing library operations, built with [NestJS](https://nestjs.com/), [TypeORM](https://typeorm.io/), and [PostgreSQL](https://www.postgresql.org/).
 
+Read the Documentation.md file for more comprehensive documentation.
+
 ## 🚀 Overview
 
 This API provides a comprehensive solution for libraries to manage books, members, loans, reservations, and fines. It features a Role-Based Access Control (RBAC) system and integrates with Supabase for cloud storage.
