@@ -100,7 +100,6 @@ export class ReservationService {
     const loan = await this.loanService.createLoan({
       user_id: findReservation.user.id,
       book_id: findReservation.book.id,
-      due_date: new Date(Date.now() + 14 + 24 + 60 + 60 + 1000),
     });
 
     return plainToInstance(ResponseLoanDto, loan, {

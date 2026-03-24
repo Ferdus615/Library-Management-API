@@ -62,35 +62,39 @@ export class LoanService {
           );
         }
 
-        findBook.available_copies -= 1;
-        await transactionalEntityManager.save(findBook);
-
         const loan = transactionalEntityManager.create(Loan, {
           user: findUser,
           book: findBook,
           issue_date: new Date(),
-          due_date: dto.due_date,
+          due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
         });
 
-        const newLoan = await transactionalEntityManager.save(loan);
+        findBook.available_copies -= 1;
+        await transactionalEntityManager.save(findBook);
 
-        await this.notificationService.notify(
-          findUser,
-          NotificationType.LOAN_ISSUED,
-          {
-            bookTitle: findBook.title,
-          },
-        );
+        const newLoan = await transactionalEntityManager.save(loan);
 
         return newLoan;
       },
     );
 
-    const fullyLoadedLoan = await this.loanRepository.findOne({
-      where: { id: savedLoan.id },
-    });
+    try {
+      await this.notificationService.notify(
+        savedLoan.user,
+        NotificationType.LOAN_ISSUED,
+        {
+          bookTitle: savedLoan.book.title,
+        },
+      );
+    } catch (error) {
+      console.error('Failed to send notification', error);
+    }
 
-    return plainToInstance(ResponseLoanDto, fullyLoadedLoan, {
+    // const fullyLoadedLoan = await this.loanRepository.findOne({
+    //   where: { id: savedLoan.id },
+    // });
+
+    return plainToInstance(ResponseLoanDto, savedLoan, {
       excludeExtraneousValues: true,
     });
   }
