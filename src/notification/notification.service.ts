@@ -1,10 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { NotificationType } from './enum/notificatio.enum';
-import { plainToClass, plainToInstance } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { ResponseNotificationDto } from './dto/responseNotificationDto.dto';
 import { NotificationQueryDto } from './dto/notificationQueryDto.dto';
 
@@ -22,7 +22,7 @@ export class NotificationService {
     type: NotificationType,
     payload: Record<string, any>,
   ) {
-    const message = await this.buildMessage(type, payload);
+    const message = this.buildMessage(type, payload);
 
     const notification = this.notificationRepository.create({
       user,
@@ -100,7 +100,7 @@ export class NotificationService {
     return await this.notificationRepository.remove(notification);
   }
 
-  async buildMessage(type: NotificationType, payload: Record<string, any>) {
+  buildMessage(type: NotificationType, payload: Record<string, any>) {
     switch (type) {
       case NotificationType.RESERVATION_CREATED:
         return {

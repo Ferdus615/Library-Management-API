@@ -75,7 +75,7 @@ export class LoanService {
       findUser,
       NotificationType.LOAN_ISSUED,
       {
-        bootTitle: findBook.title,
+        bookTitle: findBook.title,
       },
     );
 
