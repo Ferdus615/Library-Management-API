@@ -33,49 +33,56 @@ export class LoanService {
   ) {}
 
   async createLoan(dto: CreateLoanDto): Promise<ResponseLoanDto> {
-    const existingLoan = await this.loanRepository.findOne({
-      where: {
-        user: { id: dto.user_id },
-        book: { id: dto.book_id },
-        status: In([LoanStatus.ISSUED, LoanStatus.OVERDUE]),
-      },
-    });
-    if (existingLoan)
-      throw new BadRequestException(`User already has this book!`);
+    const savedLoan = await this.loanRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        const existingLoan = await transactionalEntityManager.findOne(Loan, {
+          where: {
+            user: { id: dto.user_id },
+            book: { id: dto.book_id },
+            status: In([LoanStatus.ISSUED, LoanStatus.OVERDUE]),
+          },
+        });
+        if (existingLoan)
+          throw new BadRequestException(`User already has this book!`);
 
-    const findUser = await this.userRepository.findOne({
-      where: { id: dto.user_id },
-    });
-    if (!findUser) throw new NotFoundException(`User not found!`);
+        const findUser = await transactionalEntityManager.findOne(User, {
+          where: { id: dto.user_id },
+        });
+        if (!findUser) throw new NotFoundException(`User not found!`);
 
-    const findBook = await this.bookRepository.findOne({
-      where: { id: dto.book_id },
-    });
-    if (!findBook) throw new NotFoundException(`Book not found`);
+        const findBook = await transactionalEntityManager.findOne(Book, {
+          where: { id: dto.book_id },
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!findBook) throw new NotFoundException(`Book not found`);
 
-    if (findBook.available_copies <= 0) {
-      throw new BadRequestException(
-        `Book is not available! Please rserve to get it when available.`,
-      );
-    }
+        if (findBook.available_copies <= 0) {
+          throw new BadRequestException(
+            `Book is not available! Please reserve to get it when available.`,
+          );
+        }
 
-    findBook.available_copies -= 1;
-    await this.bookRepository.save(findBook);
+        findBook.available_copies -= 1;
+        await transactionalEntityManager.save(findBook);
 
-    const loan = this.loanRepository.create({
-      user: findUser,
-      book: findBook,
-      issue_date: new Date(),
-      due_date: dto.due_date,
-    });
+        const loan = transactionalEntityManager.create(Loan, {
+          user: findUser,
+          book: findBook,
+          issue_date: new Date(),
+          due_date: dto.due_date,
+        });
 
-    const savedLoan = await this.loanRepository.save(loan);
+        const newLoan = await transactionalEntityManager.save(loan);
 
-    await this.notificationService.notify(
-      findUser,
-      NotificationType.LOAN_ISSUED,
-      {
-        bookTitle: findBook.title,
+        await this.notificationService.notify(
+          findUser,
+          NotificationType.LOAN_ISSUED,
+          {
+            bookTitle: findBook.title,
+          },
+        );
+
+        return newLoan;
       },
     );
 
@@ -135,7 +142,7 @@ export class LoanService {
   async updateLoan(id: string, dto: UpdateLoanDto): Promise<ResponseLoanDto> {
     const findLoan = await this.loanRepository.findOne({
       where: { id },
-      relations: ['book'],
+      relations: ['book', 'user'],
     });
     if (!findLoan) {
       throw new NotFoundException(`No such loan record found!`);
@@ -143,22 +150,35 @@ export class LoanService {
 
     // return book handle logic
     if (dto.return_date && findLoan.status !== LoanStatus.RETURNED) {
-      findLoan.return_date = new Date();
-      findLoan.status = LoanStatus.RETURNED;
+      await this.loanRepository.manager.transaction(
+        async (transactionalEntityManager) => {
+          const findBook = await transactionalEntityManager.findOne(Book, {
+            where: { id: findLoan.book.id },
+            lock: { mode: 'pessimistic_write' },
+          });
 
-      findLoan.book.available_copies += 1;
+          if (!findBook) {
+            throw new NotFoundException(`Book not found for this loan!`);
+          }
 
-      await this.loanRepository.save(findLoan);
-      await this.bookRepository.save(findLoan.book);
+          findLoan.return_date = new Date();
+          findLoan.status = LoanStatus.RETURNED;
 
-      // auto reservation promotion logic here
-      await this.reservationService.promoteReservation(findLoan.book);
+          findBook.available_copies += 1;
 
-      await this.notificationService.notify(
-        findLoan.user,
-        NotificationType.LOAN_RETURNED,
-        {
-          bookTitle: findLoan.book.title,
+          await transactionalEntityManager.save(findLoan);
+          await transactionalEntityManager.save(findBook);
+
+          // auto reservation promotion logic here
+          await this.reservationService.promoteReservation(findBook);
+
+          await this.notificationService.notify(
+            findLoan.user,
+            NotificationType.LOAN_RETURNED,
+            {
+              bookTitle: findBook.title,
+            },
+          );
         },
       );
     }
