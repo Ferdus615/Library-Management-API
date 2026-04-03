@@ -35,7 +35,7 @@ export class LoanService {
   async createLoan(dto: CreateLoanDto): Promise<ResponseLoanDto> {
     const savedLoan = await this.loanRepository.manager.transaction(
       async (transactionalEntityManager) => {
-        const existingLoan = await transactionalEntityManager.findOne(Loan, {
+        const existingLoan = await transactionalEntityManager.exists(Loan, {
           where: {
             user: { id: dto.user_id },
             book: { id: dto.book_id },
@@ -44,11 +44,6 @@ export class LoanService {
         });
         if (existingLoan)
           throw new BadRequestException(`User already has this book!`);
-
-        const findUser = await transactionalEntityManager.findOne(User, {
-          where: { id: dto.user_id },
-        });
-        if (!findUser) throw new NotFoundException(`User not found!`);
 
         const findBook = await transactionalEntityManager.findOne(Book, {
           where: { id: dto.book_id },
@@ -62,19 +57,21 @@ export class LoanService {
           );
         }
 
+        await transactionalEntityManager.decrement(
+          Book,
+          { id: dto.book_id },
+          'available_copies',
+          1,
+        );
+
         const loan = transactionalEntityManager.create(Loan, {
-          user: findUser,
+          user: { id: dto.user_id },
           book: findBook,
           issue_date: new Date(),
           due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
         });
 
-        findBook.available_copies -= 1;
-        await transactionalEntityManager.save(findBook);
-
-        const newLoan = await transactionalEntityManager.save(loan);
-
-        return newLoan;
+        return await transactionalEntityManager.save(loan);
       },
     );
 
@@ -89,10 +86,6 @@ export class LoanService {
     } catch (error) {
       console.error('Failed to send notification', error);
     }
-
-    // const fullyLoadedLoan = await this.loanRepository.findOne({
-    //   where: { id: savedLoan.id },
-    // });
 
     return plainToInstance(ResponseLoanDto, savedLoan, {
       excludeExtraneousValues: true,
