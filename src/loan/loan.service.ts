@@ -20,6 +20,7 @@ import { LoanQueryDto } from './dto/loanQueryDto.dto';
 import { ReservationService } from 'src/reservation/reservation.service';
 import { NotificationType } from 'src/notification/enum/notificatio.enum';
 import { NotificationService } from 'src/notification/notification.service';
+import { Fine } from 'src/fine/entities/fine.entity';
 
 @Injectable()
 export class LoanService {
@@ -27,6 +28,7 @@ export class LoanService {
     @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Book) private readonly bookRepository: Repository<Book>,
+    @InjectRepository(Fine) private readonly fineRepository: Repository<Fine>,
     @Inject(forwardRef(() => ReservationService))
     private readonly reservationService: ReservationService,
     private readonly notificationService: NotificationService,
@@ -35,15 +37,37 @@ export class LoanService {
   async createLoan(dto: CreateLoanDto): Promise<ResponseLoanDto> {
     const savedLoan = await this.loanRepository.manager.transaction(
       async (transactionalEntityManager) => {
-        const existingLoan = await transactionalEntityManager.exists(Loan, {
+        const hasExistingLoan = await transactionalEntityManager.exists(Loan, {
           where: {
             user: { id: dto.user_id },
             book: { id: dto.book_id },
             status: In([LoanStatus.ISSUED, LoanStatus.OVERDUE]),
           },
         });
-        if (existingLoan)
-          throw new BadRequestException(`User already has this book!`);
+        if (hasExistingLoan)
+          throw new BadRequestException(`User already have this book!`);
+
+        const activeLoanCount = await transactionalEntityManager.count(Loan, {
+          where: {
+            book: { id: dto.book_id },
+            status: In([LoanStatus.ISSUED, LoanStatus.OVERDUE]),
+          },
+        });
+        if (activeLoanCount >= 2)
+          throw new BadRequestException(
+            'You have multiple running loans! Please return them first.',
+          );
+
+        const hasUnpaidFine = await transactionalEntityManager.exists(Fine, {
+          where: {
+            user: { id: dto.user_id },
+            paid: false,
+          },
+        });
+        if (hasUnpaidFine)
+          throw new BadRequestException(
+            'You have unpaid fines! Please pay them before taking a new loan.',
+          );
 
         const findBook = await transactionalEntityManager.findOne(Book, {
           where: { id: dto.book_id },
