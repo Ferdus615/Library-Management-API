@@ -216,6 +216,21 @@ export class LoanService {
       console.error('Failed to send update notification', error);
     }
 
+    // controlled status update notification
+    if (
+      dto.status &&
+      updatedLoan.status !== LoanStatus.RETURNED &&
+      dto.status !== LoanStatus.RETURNED
+    ) {
+      await this.notificationService.notify(
+        updatedLoan.user,
+        NotificationType[`LOAN_${dto.status}`],
+        {
+          bookTitle: updatedLoan.book.title,
+        },
+      );
+    }
+
     return plainToInstance(ResponseLoanDto, updatedLoan, {
       excludeExtraneousValues: true,
     });
