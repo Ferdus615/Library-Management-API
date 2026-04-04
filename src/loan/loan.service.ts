@@ -81,12 +81,8 @@ export class LoanService {
           );
         }
 
-        await transactionalEntityManager.decrement(
-          Book,
-          { id: dto.book_id },
-          'available_copies',
-          1,
-        );
+        findBook.available_copies -= 1;
+        await transactionalEntityManager.save(findBook);
 
         const loan = transactionalEntityManager.create(Loan, {
           user: { id: dto.user_id },
@@ -161,23 +157,23 @@ export class LoanService {
   }
 
   async updateLoan(id: string, dto: UpdateLoanDto): Promise<ResponseLoanDto> {
-    const findLoan = await this.loanRepository.findOne({
-      where: { id },
-      relations: ['book', 'user'],
-    });
-    if (!findLoan) {
-      throw new NotFoundException(`No such loan record found!`);
-    }
+    const updatedLoan = await this.loanRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        const findLoan = await transactionalEntityManager.findOne(Loan, {
+          where: { id },
+          relations: ['book', 'user'],
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!findLoan) {
+          throw new NotFoundException(`No such loan record found!`);
+        }
 
-    // return book handle logic
-    if (dto.return_date && findLoan.status !== LoanStatus.RETURNED) {
-      await this.loanRepository.manager.transaction(
-        async (transactionalEntityManager) => {
+        // handle return logic
+        if (dto.return_date && findLoan.status !== LoanStatus.RETURNED) {
           const findBook = await transactionalEntityManager.findOne(Book, {
             where: { id: findLoan.book.id },
             lock: { mode: 'pessimistic_write' },
           });
-
           if (!findBook) {
             throw new NotFoundException(`Book not found for this loan!`);
           }
@@ -189,40 +185,38 @@ export class LoanService {
 
           await transactionalEntityManager.save(findLoan);
           await transactionalEntityManager.save(findBook);
+        }
 
-          // auto reservation promotion logic here
-          await this.reservationService.promoteReservation(findBook);
+        // controlled status update logic
+        if (
+          dto.status &&
+          findLoan.status !== LoanStatus.RETURNED &&
+          dto.status !== LoanStatus.RETURNED
+        ) {
+          findLoan.status = dto.status;
+          await transactionalEntityManager.save(findLoan);
+        }
 
-          await this.notificationService.notify(
-            findLoan.user,
-            NotificationType.LOAN_RETURNED,
-            {
-              bookTitle: findBook.title,
-            },
-          );
-        },
-      );
-    }
+        return findLoan;
+      },
+    );
 
-    //controlled status update logic
-    if (
-      dto.status &&
-      findLoan.status !== LoanStatus.RETURNED &&
-      dto.status !== LoanStatus.RETURNED
-    ) {
-      findLoan.status = dto.status;
-      await this.loanRepository.save(findLoan);
+    // auto reservation promotion logic here
+    await this.reservationService.promoteReservation(updatedLoan.book);
 
+    try {
       await this.notificationService.notify(
-        findLoan.user,
-        NotificationType[`LOAN_${dto.status}`],
+        updatedLoan.user,
+        NotificationType.LOAN_RETURNED,
         {
-          bookTitle: findLoan.book.title,
+          bookTitle: updatedLoan.book.title,
         },
       );
+    } catch (error) {
+      console.error('Failed to send update notification', error);
     }
 
-    return plainToInstance(ResponseLoanDto, findLoan, {
+    return plainToInstance(ResponseLoanDto, updatedLoan, {
       excludeExtraneousValues: true,
     });
   }
