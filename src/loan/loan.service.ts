@@ -49,7 +49,7 @@ export class LoanService {
 
         const activeLoanCount = await transactionalEntityManager.count(Loan, {
           where: {
-            book: { id: dto.book_id },
+            book: { id: dto.user_id },
             status: In([LoanStatus.ISSUED, LoanStatus.OVERDUE]),
           },
         });
