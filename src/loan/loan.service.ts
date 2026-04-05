@@ -45,11 +45,13 @@ export class LoanService {
           },
         });
         if (hasExistingLoan)
-          throw new BadRequestException(`User already have this book!`);
+          throw new BadRequestException(
+            `User already have this book! Please return the book before taking a new loan.`,
+          );
 
         const activeLoanCount = await transactionalEntityManager.count(Loan, {
           where: {
-            book: { id: dto.user_id },
+            user: { id: dto.user_id },
             status: In([LoanStatus.ISSUED, LoanStatus.OVERDUE]),
           },
         });
@@ -157,6 +159,7 @@ export class LoanService {
   }
 
   async updateLoan(id: string, dto: UpdateLoanDto): Promise<ResponseLoanDto> {
+    let isReturnProcessed = false;
     const updatedLoan = await this.loanRepository.manager.transaction(
       async (transactionalEntityManager) => {
         const findLoan = await transactionalEntityManager.findOne(Loan, {
@@ -185,6 +188,7 @@ export class LoanService {
 
           await transactionalEntityManager.save(findLoan);
           await transactionalEntityManager.save(findBook);
+          isReturnProcessed = true;
         }
 
         // controlled status update logic
@@ -202,18 +206,20 @@ export class LoanService {
     );
 
     // auto reservation promotion logic here
-    await this.reservationService.promoteReservation(updatedLoan.book);
+    if (isReturnProcessed) {
+      await this.reservationService.promoteReservation(updatedLoan.book);
 
-    try {
-      await this.notificationService.notify(
-        updatedLoan.user,
-        NotificationType.LOAN_RETURNED,
-        {
-          bookTitle: updatedLoan.book.title,
-        },
-      );
-    } catch (error) {
-      console.error('Failed to send update notification', error);
+      try {
+        await this.notificationService.notify(
+          updatedLoan.user,
+          NotificationType.LOAN_RETURNED,
+          {
+            bookTitle: updatedLoan.book.title,
+          },
+        );
+      } catch (error) {
+        console.error('Failed to send update notification', error);
+      }
     }
 
     // controlled status update notification
@@ -222,13 +228,22 @@ export class LoanService {
       updatedLoan.status !== LoanStatus.RETURNED &&
       dto.status !== LoanStatus.RETURNED
     ) {
-      await this.notificationService.notify(
-        updatedLoan.user,
-        NotificationType[`LOAN_${dto.status}`],
-        {
-          bookTitle: updatedLoan.book.title,
-        },
-      );
+      const notificationMap: Record<string, NotificationType> = {
+        [LoanStatus.ISSUED]: NotificationType.LOAN_ISSUED,
+        [LoanStatus.OVERDUE]: NotificationType.LOAN_OVERDUE,
+      };
+
+      const notificationType = notificationMap[dto.status];
+
+      if (notificationType) {
+        await this.notificationService.notify(
+          updatedLoan.user,
+          notificationType,
+          {
+            bookTitle: updatedLoan.book.title,
+          },
+        );
+      }
     }
 
     return plainToInstance(ResponseLoanDto, updatedLoan, {
@@ -237,10 +252,35 @@ export class LoanService {
   }
 
   async deleteLoan(id: string): Promise<{ message: string }> {
-    const updatedLoan = await this.loanRepository.findOne({ where: { id } });
-    if (!updatedLoan) throw new NotFoundException(`No such loan record found!`);
+    await this.loanRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        const findLoan = await transactionalEntityManager.findOne(Loan, {
+          where: { id },
+          relations: ['book'],
+          lock: { mode: 'pessimistic_write' },
+        });
 
-    await this.loanRepository.remove(updatedLoan);
+        if (!findLoan) {
+          throw new NotFoundException(`No such loan record found!`);
+        }
+
+        // If the loan is not returned, restore the book copy
+        if (findLoan.status !== LoanStatus.RETURNED) {
+          const findBook = await transactionalEntityManager.findOne(Book, {
+            where: { id: findLoan.book.id },
+            lock: { mode: 'pessimistic_write' },
+          });
+
+          if (findBook) {
+            findBook.available_copies += 1;
+            await transactionalEntityManager.save(findBook);
+          }
+        }
+
+        await transactionalEntityManager.remove(findLoan);
+      },
+    );
+
     return { message: `Loan record deleted successfully!` };
   }
 }
