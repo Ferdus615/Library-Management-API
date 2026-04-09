@@ -18,7 +18,7 @@ export class NotificationService {
   ) {}
 
   async notify(
-    user: User,
+    user: Partial<User>,
     type: NotificationType,
     payload: Record<string, any>,
   ) {
