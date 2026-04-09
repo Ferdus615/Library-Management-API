@@ -107,6 +107,7 @@ export class FineService {
     total: number;
     activeCount: number;
     paidCount: number;
+    totalUnpaidAmount: number;
   }> {
     const { search, page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
@@ -159,6 +160,21 @@ export class FineService {
       )
       .getCount();
 
+    const totalUnpaidAmountResult = await this.fineRepository
+      .createQueryBuilder('fine')
+      .leftJoin('fine.user', 'user')
+      .leftJoin('fine.loan', 'loan')
+      .leftJoin('loan.book', 'book')
+      .select('SUM(fine.total_amount)', 'sum')
+      .where('fine.paid = :paid', { paid: false })
+      .andWhere(
+        search
+          ? '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search OR book.title ILIKE :search)'
+          : '1=1',
+        { search: `%${search}%` },
+      )
+      .getRawOne<{ sum: string | number }>();
+
     return {
       data: fines.map((fine) =>
         plainToInstance(ResponseFineDto, fine, {
@@ -168,6 +184,7 @@ export class FineService {
       total,
       activeCount,
       paidCount,
+      totalUnpaidAmount: Number(totalUnpaidAmountResult?.sum) || 0,
     };
   }
 

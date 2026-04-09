@@ -38,4 +38,5 @@ export class Loan {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
+  dto: any;
 }

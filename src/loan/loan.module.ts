@@ -4,6 +4,7 @@ import { LoanController } from './loan.controller';
 import { Loan } from './entities/loan.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Book } from 'src/book/entities/book.entity';
+import { Fine } from 'src/fine/entities/fine.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OverdueLoanCron } from './cron/overdue.cron';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
@@ -12,7 +13,7 @@ import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Loan, User, Book, Reservation]),
+    TypeOrmModule.forFeature([Loan, User, Book, Reservation, Fine]),
     forwardRef(() => ReservationModule),
     NotificationModule,
   ],

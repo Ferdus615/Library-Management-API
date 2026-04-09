@@ -4,8 +4,6 @@ import {
   IsNumber,
   MaxLength,
   IsOptional,
-  IsUUID,
-  IsNotEmpty,
   IsUrl,
 } from 'class-validator';
 export class UpdateBookDto {
@@ -99,7 +97,6 @@ export class UpdateBookDto {
     example: 'a1b2c3d4-e5f6-7890-abcd-ef0123456789',
     required: false,
   })
-  @IsUUID()
   @IsOptional()
   category_id?: string | null;
 }
