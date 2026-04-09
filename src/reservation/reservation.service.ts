@@ -35,52 +35,58 @@ export class ReservationService {
   async createReservation(
     dto: CreateReservationDto,
   ): Promise<ResponseReservationDto> {
-    const findUser = await this.userRepository.findOne({
-      where: { id: dto.user_id },
-    });
-    if (!findUser)
-      throw new NotFoundException(`User with id:${dto.user_id} not found!`);
+    const savedReservation =
+      await this.reservationRepository.manager.transaction(async (manager) => {
+        const userExist = await manager.exists(User, {
+          where: { id: dto.user_id },
+        });
+        if (!userExist) throw new NotFoundException('User not found!');
 
-    const findBook = await this.bookRepository.findOne({
-      where: { id: dto.book_id },
-    });
-    if (!findBook)
-      throw new NotFoundException(`Book with id:${dto.book_id} not found!`);
+        const bookExist = await manager.findOne(Book, {
+          where: { id: dto.book_id },
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!bookExist) throw new NotFoundException('Book not found!');
 
-    if (findBook.available_copies > 0)
-      throw new BadRequestException(
-        `The book is availabel! Please loan the book.`,
+        if (bookExist.available_copies > 0) {
+          throw new BadRequestException(
+            'Book is available! Please Borrow it instead.',
+          );
+        }
+
+        const reservationExist = await manager.findOne(Reservation, {
+          where: {
+            user: { id: dto.user_id },
+            book: { id: dto.book_id },
+            status: In([ReservationStatus.PENDING, ReservationStatus.READY]),
+          },
+        });
+        if (reservationExist) {
+          throw new BadRequestException(
+            'You already have an active reservation for this book!',
+          );
+        }
+
+        const reservation = manager.create(Reservation, {
+          user: { id: dto.user_id },
+          book: { id: dto.book_id },
+          status: ReservationStatus.PENDING,
+        });
+
+        return await manager.save(reservation);
+      });
+
+    try {
+      await this.notificationService.notify(
+        { id: dto.user_id },
+        NotificationType.RESERVATION_CREATED,
+        {
+          bookTitle: savedReservation.book.title,
+        },
       );
-
-    const existing = await this.reservationRepository.findOne({
-      where: {
-        user: { id: dto.user_id },
-        book: { id: dto.book_id },
-        status: In([ReservationStatus.PENDING, ReservationStatus.READY]),
-      },
-    });
-
-    if (existing) {
-      throw new BadRequestException(
-        `You have already requested a reservation for this book!`,
-      );
+    } catch (error) {
+      console.error('Notification failed:', error);
     }
-
-    const reservation = this.reservationRepository.create({
-      user: findUser,
-      book: findBook,
-      status: ReservationStatus.PENDING,
-    });
-
-    const savedReservation = await this.reservationRepository.save(reservation);
-
-    await this.notificationService.notify(
-      findUser,
-      NotificationType.RESERVATION_CREATED,
-      {
-        bookTitle: findBook.title,
-      },
-    );
 
     return plainToInstance(ResponseReservationDto, savedReservation, {
       excludeExtraneousValues: true,
