@@ -19,6 +19,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 import { LoanService } from 'src/loan/loan.service';
 import { ReservationQueryDto } from './dto/reservationQueryDto.dto';
+import { findSourceMap } from 'module';
 
 @Injectable()
 export class ReservationService {
@@ -126,43 +127,59 @@ export class ReservationService {
   }
 
   async cancelReservation(id: string): Promise<{ message: string }> {
-    const findReservation = await this.reservationRepository.findOne({
-      where: { id },
-    });
-    if (!findReservation) throw new NotFoundException(`Reservation not found!`);
+    const cancelReservation =
+      await this.reservationRepository.manager.transaction(async (manager) => {
+        const findReservation = await manager.findOne(Reservation, {
+          where: { id },
+          relations: ['user', 'book'],
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!findReservation)
+          throw new NotFoundException('Reservation not found!');
 
-    if (findReservation.status === ReservationStatus.CANCELLED) {
-      throw new BadRequestException('Reservation has already been cancelled!');
+        if (findReservation.status === ReservationStatus.RECEIVED)
+          throw new BadRequestException(
+            'Reservation has been received, please return it!',
+          );
+
+        if (
+          findReservation.status === ReservationStatus.CANCELLED ||
+          ReservationStatus.EXPIRED
+        )
+          throw new BadRequestException(
+            'Reservation is already cancelled or expired!',
+          );
+
+        if (findReservation.status === ReservationStatus.READY) {
+          const findBook = await manager.findOne(Book, {
+            where: { id: findReservation.book.id },
+            lock: { mode: 'pessimistic_write' },
+          });
+          if (!findBook) throw new NotFoundException('Book not found!');
+
+          findBook.available_copies += 1;
+          await manager.save(findBook);
+        }
+
+        findReservation.status = ReservationStatus.CANCELLED;
+        await manager.save(findReservation);
+
+        return findReservation;
+      });
+
+    try {
+      await this.notificationService.notify(
+        cancelReservation.user,
+        NotificationType.RESERVATION_CANCELLED,
+        {
+          bookTitle: cancelReservation.book.title,
+        },
+      );
+    } catch (error) {
+      console.error('Notification failed', error);
     }
 
-    if (findReservation.status === ReservationStatus.EXPIRED) {
-      throw new BadRequestException('Reservation has expired!');
-    }
-
-    if (findReservation.status === ReservationStatus.PENDING) {
-      findReservation.status = ReservationStatus.CANCELLED;
-    }
-
-    if (findReservation.status === ReservationStatus.READY) {
-      // increase book count
-      const book = findReservation.book;
-      book.available_copies += 1;
-      await this.bookRepository.save(book);
-
-      findReservation.status = ReservationStatus.CANCELLED;
-    }
-
-    await this.reservationRepository.save(findReservation);
-
-    await this.notificationService.notify(
-      findReservation.user,
-      NotificationType.RESERVATION_CANCELLED,
-      {
-        bookTitle: findReservation.book.title,
-      },
-    );
-
-    return { message: 'Reservation cancelled successfully' };
+    return { message: 'Reservation cancelled successfully!' };
   }
 
   async findAllReservatios(query: ReservationQueryDto): Promise<{
