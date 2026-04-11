@@ -19,6 +19,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 import { LoanService } from 'src/loan/loan.service';
 import { ReservationQueryDto } from './dto/reservationQueryDto.dto';
+import { Loan } from 'src/loan/entities/loan.entity';
 
 @Injectable()
 export class ReservationService {
@@ -94,21 +95,33 @@ export class ReservationService {
   }
 
   async receiveReservation(id: string): Promise<ResponseLoanDto> {
-    const findReservation = await this.reservationRepository.findOne({
-      where: { id },
-    });
-    if (!findReservation) throw new NotFoundException('Reservation not found!');
+    const receiveReservation =
+      await this.reservationRepository.manager.transaction(async (manager) => {
+        const findReservation = await manager.findOne(Reservation, {
+          where: { id },
+          relations: ['user', 'book'],
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!findReservation)
+          throw new NotFoundException('Reservation not found!');
 
-    if (findReservation.status !== ReservationStatus.READY) {
-      throw new BadRequestException('Reservation is not ready for loan!');
-    }
+        if (findReservation.status !== ReservationStatus.READY)
+          throw new BadRequestException(
+            'Reservation is either not ready or expired to be loaned!',
+          );
 
-    const loan = await this.loanService.createLoan({
-      user_id: findReservation.user.id,
-      book_id: findReservation.book.id,
-    });
+        const createLoan = await this.loanService.createLoan({
+          user_id: findReservation.user.id,
+          book_id: findReservation.book.id,
+        });
 
-    return plainToInstance(ResponseLoanDto, loan, {
+        findReservation.status = ReservationStatus.RECEIVED;
+        await manager.save(findReservation);
+
+        return createLoan;
+      });
+
+    return plainToInstance(ResponseLoanDto, receiveReservation, {
       excludeExtraneousValues: true,
     });
   }
