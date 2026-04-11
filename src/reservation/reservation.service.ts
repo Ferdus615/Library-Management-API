@@ -19,7 +19,6 @@ import { NotificationService } from 'src/notification/notification.service';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 import { LoanService } from 'src/loan/loan.service';
 import { ReservationQueryDto } from './dto/reservationQueryDto.dto';
-import { Loan } from 'src/loan/entities/loan.entity';
 
 @Injectable()
 export class ReservationService {
