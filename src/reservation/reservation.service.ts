@@ -231,8 +231,10 @@ export class ReservationService {
   async findReservationByBook(id: string): Promise<ResponseReservationDto[]> {
     const findReservation = await this.reservationRepository.find({
       where: { book: { id } },
+      order: { created_at: 'ASC' },
     });
-    if (!findReservation) throw new NotFoundException(`Reservation not found!`);
+    if (findReservation.length === 0)
+      throw new NotFoundException(`Reservation not found for this book!`);
 
     return findReservation.map((reservation) =>
       plainToInstance(ResponseReservationDto, reservation, {
