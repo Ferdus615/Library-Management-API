@@ -19,7 +19,6 @@ import { NotificationService } from 'src/notification/notification.service';
 import { ResponseLoanDto } from 'src/loan/dto/responseLoanDto.dto';
 import { LoanService } from 'src/loan/loan.service';
 import { ReservationQueryDto } from './dto/reservationQueryDto.dto';
-import { findSourceMap } from 'module';
 
 @Injectable()
 export class ReservationService {
@@ -243,43 +242,56 @@ export class ReservationService {
     );
   }
 
-  async promoteReservation(book: Book): Promise<void> {
-    if (book.available_copies <= 0) return;
+  async promoteReservation(id: string): Promise<void> {
+    const reservationPromoted =
+      await this.reservationRepository.manager.transaction(async (manager) => {
+        const findBook = await manager.findOne(Book, {
+          where: { id },
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!findBook || findBook.available_copies === 0) return;
 
-    const findReservation = await this.reservationRepository.findOne({
-      where: {
-        book: { id: book.id },
-        status: ReservationStatus.PENDING,
-      },
-      order: { created_at: 'ASC' },
-    });
+        const findReservation = await manager.findOne(Reservation, {
+          where: {
+            book: { id },
+            status: ReservationStatus.PENDING,
+          },
+          relations: ['user', 'book'],
+          order: { created_at: 'ASC' },
+        });
+        if (!findReservation) return;
 
-    if (!findReservation) return;
+        const result = await manager.update(
+          Reservation,
+          {
+            where: { id: findReservation.id },
+            status: ReservationStatus.PENDING,
+          },
+          {
+            status: ReservationStatus.READY,
+            ready_at: new Date(),
+            expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          },
+        );
 
-    const result = await this.reservationRepository.update(
-      {
-        id: findReservation.id,
-        status: ReservationStatus.PENDING,
-      },
-      {
-        status: ReservationStatus.READY,
-        ready_at: new Date(),
-        expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-      },
-    );
+        if (result.affected === 0) return;
 
-    // Another process already promoted it
-    if (result.affected === 0) return;
+        findBook.available_copies -= 1;
+        await manager.save(findBook);
 
-    book.available_copies -= 1;
-    await this.bookRepository.save(book);
+        return findReservation;
+      });
 
-    await this.notificationService.notify(
-      findReservation.user,
-      NotificationType.RESERVATION_READY,
-      {
-        bookTitle: findReservation.book.title,
-      },
-    );
+    try {
+      await this.notificationService.notify(
+        { id: reservationPromoted?.user.id },
+        NotificationType.RESERVATION_READY,
+        {
+          bookTitle: reservationPromoted?.book.title,
+        },
+      );
+    } catch (error) {
+      console.error('Notification failed', error);
+    }
   }
 }

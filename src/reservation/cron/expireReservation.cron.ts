@@ -30,7 +30,7 @@ export class ReservationCron {
       relations: ['book'],
     });
 
-    if (!expiredReservations.length) return;
+    if (expiredReservations.length === 0) return;
 
     this.logger.log(`Expiring ${expiredReservations.length} reservation(s)`);
 
@@ -42,7 +42,7 @@ export class ReservationCron {
       book.available_copies += 1;
       await this.bookRepository.save(book);
 
-      await this.reservationService.promoteReservation(book);
+      await this.reservationService.promoteReservation(book.id);
     }
   }
 }
