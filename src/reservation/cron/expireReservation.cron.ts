@@ -6,7 +6,6 @@ import { Book } from 'src/book/entities/book.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ReservationStatus } from '../enum/reservation.enum';
 import { ReservationService } from '../reservation.service';
-import { find } from 'rxjs';
 
 @Injectable()
 export class ReservationCron {
