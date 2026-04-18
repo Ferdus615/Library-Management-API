@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Book } from 'src/book/entities/book.entity';
 import { Reservation } from './entities/reservation.entity';
-import { ReservationCron } from './cron/expireReservation.cron';
+import { ReservationExpiryCron } from './cron/expireReservation.cron';
 import { NotificationModule } from 'src/notification/notification.module';
 import { LoanModule } from 'src/loan/loan.module';
 import { Loan } from 'src/loan/entities/loan.entity';
@@ -17,7 +17,7 @@ import { Loan } from 'src/loan/entities/loan.entity';
     forwardRef(() => LoanModule),
   ],
   controllers: [ReservationController],
-  providers: [ReservationService, ReservationCron],
+  providers: [ReservationService, ReservationExpiryCron],
   exports: [ReservationService],
 })
 export class ReservationModule {}

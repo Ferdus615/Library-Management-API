@@ -8,8 +8,8 @@ import { ReservationStatus } from '../enum/reservation.enum';
 import { ReservationService } from '../reservation.service';
 
 @Injectable()
-export class ReservationCron {
-  private readonly logger = new Logger(ReservationCron.name);
+export class ReservationExpiryCron {
+  private readonly logger = new Logger(ReservationExpiryCron.name);
   notificationService: any;
 
   constructor(
