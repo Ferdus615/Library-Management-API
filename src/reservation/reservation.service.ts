@@ -94,63 +94,91 @@ export class ReservationService {
   }
 
   async receiveReservation(id: string): Promise<ResponseLoanDto> {
-    const findReservation = await this.reservationRepository.findOne({
-      where: { id },
-    });
-    if (!findReservation) throw new NotFoundException('Reservation not found!');
+    const receiveReservation =
+      await this.reservationRepository.manager.transaction(async (manager) => {
+        const findReservation = await manager.findOne(Reservation, {
+          where: { id },
+          relations: ['user', 'book'],
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!findReservation)
+          throw new NotFoundException('Reservation not found!');
 
-    if (findReservation.status !== ReservationStatus.READY) {
-      throw new BadRequestException('Reservation is not ready for loan!');
-    }
+        if (findReservation.status !== ReservationStatus.READY)
+          throw new BadRequestException(
+            'Reservation is either not ready or expired to be loaned!',
+          );
 
-    const loan = await this.loanService.createLoan({
-      user_id: findReservation.user.id,
-      book_id: findReservation.book.id,
-    });
+        const createLoan = await this.loanService.createLoan({
+          user_id: findReservation.user.id,
+          book_id: findReservation.book.id,
+        });
 
-    return plainToInstance(ResponseLoanDto, loan, {
+        findReservation.status = ReservationStatus.RECEIVED;
+        await manager.save(findReservation);
+
+        return createLoan;
+      });
+
+    return plainToInstance(ResponseLoanDto, receiveReservation, {
       excludeExtraneousValues: true,
     });
   }
 
   async cancelReservation(id: string): Promise<{ message: string }> {
-    const findReservation = await this.reservationRepository.findOne({
-      where: { id },
-    });
-    if (!findReservation) throw new NotFoundException(`Reservation not found!`);
+    const cancelReservation =
+      await this.reservationRepository.manager.transaction(async (manager) => {
+        const findReservation = await manager.findOne(Reservation, {
+          where: { id },
+          relations: ['user', 'book'],
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!findReservation)
+          throw new NotFoundException('Reservation not found!');
 
-    if (findReservation.status === ReservationStatus.CANCELLED) {
-      throw new BadRequestException('Reservation has already been cancelled!');
+        if (findReservation.status === ReservationStatus.RECEIVED)
+          throw new BadRequestException(
+            'Reservation has been received, please return it!',
+          );
+
+        if (
+          findReservation.status === ReservationStatus.CANCELLED ||
+          ReservationStatus.EXPIRED
+        )
+          throw new BadRequestException(
+            'Reservation is already cancelled or expired!',
+          );
+
+        if (findReservation.status === ReservationStatus.READY) {
+          const findBook = await manager.findOne(Book, {
+            where: { id: findReservation.book.id },
+            lock: { mode: 'pessimistic_write' },
+          });
+          if (!findBook) throw new NotFoundException('Book not found!');
+
+          findBook.available_copies += 1;
+          await manager.save(findBook);
+        }
+
+        findReservation.status = ReservationStatus.CANCELLED;
+        await manager.save(findReservation);
+
+        return findReservation;
+      });
+
+    try {
+      await this.notificationService.notify(
+        cancelReservation.user,
+        NotificationType.RESERVATION_CANCELLED,
+        {
+          bookTitle: cancelReservation.book.title,
+        },
+      );
+    } catch (error) {
+      console.error('Notification failed', error);
     }
 
-    if (findReservation.status === ReservationStatus.EXPIRED) {
-      throw new BadRequestException('Reservation has expired!');
-    }
-
-    if (findReservation.status === ReservationStatus.PENDING) {
-      findReservation.status = ReservationStatus.CANCELLED;
-    }
-
-    if (findReservation.status === ReservationStatus.READY) {
-      // increase book count
-      const book = findReservation.book;
-      book.available_copies += 1;
-      await this.bookRepository.save(book);
-
-      findReservation.status = ReservationStatus.CANCELLED;
-    }
-
-    await this.reservationRepository.save(findReservation);
-
-    await this.notificationService.notify(
-      findReservation.user,
-      NotificationType.RESERVATION_CANCELLED,
-      {
-        bookTitle: findReservation.book.title,
-      },
-    );
-
-    return { message: 'Reservation cancelled successfully' };
+    return { message: 'Reservation cancelled successfully!' };
   }
 
   async findAllReservatios(query: ReservationQueryDto): Promise<{
@@ -202,8 +230,10 @@ export class ReservationService {
   async findReservationByBook(id: string): Promise<ResponseReservationDto[]> {
     const findReservation = await this.reservationRepository.find({
       where: { book: { id } },
+      order: { created_at: 'ASC' },
     });
-    if (!findReservation) throw new NotFoundException(`Reservation not found!`);
+    if (findReservation.length === 0)
+      throw new NotFoundException(`Reservation not found for this book!`);
 
     return findReservation.map((reservation) =>
       plainToInstance(ResponseReservationDto, reservation, {
@@ -212,43 +242,56 @@ export class ReservationService {
     );
   }
 
-  async promoteReservation(book: Book): Promise<void> {
-    if (book.available_copies <= 0) return;
+  async promoteReservation(id: string): Promise<void> {
+    const reservationPromoted =
+      await this.reservationRepository.manager.transaction(async (manager) => {
+        const findBook = await manager.findOne(Book, {
+          where: { id },
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!findBook || findBook.available_copies === 0) return;
 
-    const findReservation = await this.reservationRepository.findOne({
-      where: {
-        book: { id: book.id },
-        status: ReservationStatus.PENDING,
-      },
-      order: { created_at: 'ASC' },
-    });
+        const findReservation = await manager.findOne(Reservation, {
+          where: {
+            book: { id },
+            status: ReservationStatus.PENDING,
+          },
+          relations: ['user', 'book'],
+          order: { created_at: 'ASC' },
+        });
+        if (!findReservation) return;
 
-    if (!findReservation) return;
+        const result = await manager.update(
+          Reservation,
+          {
+            where: { id: findReservation.id },
+            status: ReservationStatus.PENDING,
+          },
+          {
+            status: ReservationStatus.READY,
+            ready_at: new Date(),
+            expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          },
+        );
 
-    const result = await this.reservationRepository.update(
-      {
-        id: findReservation.id,
-        status: ReservationStatus.PENDING,
-      },
-      {
-        status: ReservationStatus.READY,
-        ready_at: new Date(),
-        expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-      },
-    );
+        if (result.affected === 0) return;
 
-    // Another process already promoted it
-    if (result.affected === 0) return;
+        findBook.available_copies -= 1;
+        await manager.save(findBook);
 
-    book.available_copies -= 1;
-    await this.bookRepository.save(book);
+        return findReservation;
+      });
 
-    await this.notificationService.notify(
-      findReservation.user,
-      NotificationType.RESERVATION_READY,
-      {
-        bookTitle: findReservation.book.title,
-      },
-    );
+    try {
+      await this.notificationService.notify(
+        { id: reservationPromoted?.user.id },
+        NotificationType.RESERVATION_READY,
+        {
+          bookTitle: reservationPromoted?.book.title,
+        },
+      );
+    } catch (error) {
+      console.error('Notification failed', error);
+    }
   }
 }

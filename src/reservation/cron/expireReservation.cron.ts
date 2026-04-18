@@ -10,6 +10,7 @@ import { ReservationService } from '../reservation.service';
 @Injectable()
 export class ReservationCron {
   private readonly logger = new Logger(ReservationCron.name);
+  notificationService: any;
 
   constructor(
     @InjectRepository(Reservation)
@@ -22,27 +23,53 @@ export class ReservationCron {
   async expireReservation(): Promise<void> {
     const now = new Date();
 
-    const expiredReservations = await this.reservationRepository.find({
+    const expiredReservation = await this.reservationRepository.find({
       where: {
         status: ReservationStatus.READY,
         expires_at: LessThan(now),
       },
-      relations: ['book'],
+      select: ['id'],
     });
+    if (expiredReservation.length === 0) return;
 
-    if (!expiredReservations.length) return;
+    this.logger.log(`Expiring ${expiredReservation.length} reservations...`);
 
-    this.logger.log(`Expiring ${expiredReservations.length} reservation(s)`);
+    for (const { id } of expiredReservation) {
+      const expiredBookId =
+        await this.reservationRepository.manager.transaction(
+          async (manager) => {
+            const findReservation = await manager.findOne(Reservation, {
+              where: { id },
+              relations: ['user', 'book'],
+              lock: { mode: 'pessimistic_write' },
+            });
+            if (!findReservation) return;
 
-    for (const reservation of expiredReservations) {
-      reservation.status = ReservationStatus.EXPIRED;
-      await this.reservationRepository.save(reservation);
+            if (
+              findReservation.status !== ReservationStatus.READY ||
+              findReservation.expires_at > now
+            )
+              return;
 
-      const book = reservation.book;
-      book.available_copies += 1;
-      await this.bookRepository.save(book);
+            const updateBook = await manager.findOne(Book, {
+              where: { id: findReservation.book.id },
+              lock: { mode: 'pessimistic_write' },
+            });
+            if (!updateBook) return;
 
-      await this.reservationService.promoteReservation(book);
+            findReservation.status = ReservationStatus.EXPIRED;
+            await manager.save(findReservation);
+
+            updateBook.available_copies += 1;
+            await manager.save(updateBook);
+
+            return updateBook.id;
+          },
+        );
+
+      if (expiredBookId) {
+        await this.reservationService.promoteReservation(expiredBookId);
+      }
     }
   }
 }
