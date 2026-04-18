@@ -28,10 +28,13 @@ export class FileService {
       throw new BadRequestException('SUPABASE_BUCKET_URL is not configured.');
     }
 
-    // Extract bucket name from URL
-    const bucketName = bucketUrl.split('/').pop();
-    if (!bucketName) {
-      throw new BadRequestException('Invalid SUPABASE_BUCKET_URL');
+    // Extract bucket name from URL. Expected format: https://.../public/bucketName
+    // We split by / and filter out empty strings to avoid issues with trailing slashes
+    const parts = bucketUrl.split('/').filter(Boolean);
+    const bucketName = parts.pop();
+
+    if (!bucketName || bucketName.includes('.') || bucketName === 'public') {
+      throw new BadRequestException('Invalid SUPABASE_BUCKET_URL. Could not determine bucket name.');
     }
 
     const fileExt = (file.originalname as string).split('.').pop();

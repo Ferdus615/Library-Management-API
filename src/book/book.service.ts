@@ -65,6 +65,14 @@ export class BookService {
         book.category = category;
       }
 
+      if (bookDto.cover_image) {
+        if (!this.isValidSupabaseUrl(bookDto.cover_image)) {
+          throw new BadRequestException(
+            `Invalid Supabase URL for book: ${bookDto.title}`,
+          );
+        }
+      }
+
       booksToSave.push(book);
     }
 
