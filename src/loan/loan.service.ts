@@ -207,7 +207,7 @@ export class LoanService {
 
     // auto reservation promotion logic here
     if (isReturnProcessed) {
-      await this.reservationService.promoteReservation(updatedLoan.book);
+      await this.reservationService.promoteReservation(updatedLoan.book.id);
 
       try {
         await this.notificationService.notify(
